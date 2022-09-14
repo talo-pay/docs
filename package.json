@@ -1,16 +1,21 @@
 {
-  "name": "docs_page",
-  "version": "1.0.0",
-  "description": "documentation for talo integrations",
-  "repository": "https://github.com/github.com/crypto-payment-gateway",
-  "author": "talo",
-  "license": "MIT",
-  "private": true,
-  "dependencies": {
-    "next": "^12.3.0",
-    "nextra": "^1.1.0",
-    "nextra-theme-docs": "^1.2.6",
-    "react": "^18.2.0",
-    "react-dom": "^18.2.0"
-  }
+	"name": "docs-page",
+	"version": "1.0.0",
+	"description": "documentation for talo integrations",
+	"repository": "https://github.com/github.com/crypto-payment-gateway",
+	"author": "talo",
+	"license": "MIT",
+	"private": true,
+	"scripts": {
+		"dev": "next",
+		"build": "next build",
+		"start": "next start"
+	},
+	"dependencies": {
+		"next": "^12.3.0",
+		"nextra": "^1.1.0",
+		"nextra-theme-docs": "^1.2.6",
+		"react": "^18.2.0",
+		"react-dom": "^18.2.0"
+	}
 }
