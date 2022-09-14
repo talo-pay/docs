@@ -1,0 +1,33 @@
+# API
+
+Para comenzar a recibir pagos en criptomonedas haciendo una integracion directa con la API, se deberan usar principalmente un endpoint.
+
+## `POST /payments`
+
+| Parametro    |                                       Description                                       | Obligatorio |                             Ejemplo |
+| :----------- | :-------------------------------------------------------------------------------------: | :---------: | ----------------------------------: |
+| price        |            Indica el precio en la moneda que se desee establecer el precio.             |     yes     |    `{currency:"nuARS",amount:1500}` |
+| user_id      |                       El id del usuario que esta creando el pago.                       |     yes     |
+| webhook_url  |            Direccion en la cual se avisara al usuario que el Pago se recibio            |
+| redirect_url |        Url a la cual redirigir al usuario una vez que se haya completado el pago        |     no      | `https://fabrica.com/checkout/1234` |
+| external_id  |                        Campo para permitir guardar id's internas                        |     no      |                        `FDF_987654` |
+| items        | Campo para mostrar en la pantalla de pagos la lista de productos que se estan comprando |     no      |                                   - |
+
+Ejemplo de uso
+
+```js
+fetch("https://api.talo.com.ar/payments", {
+	method: "POST",
+	body: JSON.stringify({
+		price: {
+			currency: "nuARS",
+			amount: 1500,
+		},
+		user_id: "32392bb0-ae84-4fd5-8d2c-20a8fa51cad8",
+		redirect_url: "fabricadefotolibros.com/checkout/1234",
+		external_id: "FDF_987654",
+	}),
+})
+```
+
+# Configurar Webhook
