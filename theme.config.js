@@ -1,7 +1,7 @@
 // theme.config.js
 export default {
-	projectLink: "https://github.com/shuding/nextra", // GitHub link in the navbar
-	docsRepositoryBase: "https://github.com/shuding/nextra/blob/master", // base URL for the docs repository
+	projectLink: "https://github.com/talo-pay/docs", // GitHub link in the navbar
+	docsRepositoryBase: "https://github.com/talo-pay/docs", // base URL for the docs repository
 	titleSuffix: "Talo Docs",
 	nextLinks: true,
 	prevLinks: true,
@@ -65,7 +65,10 @@ export default {
 				sizes="32x32"
 			></link>
 			<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-			<meta name="description" content="Nextra: the next docs builder" />
+			<meta
+				name="description"
+				content="Documentation for talo cryptocurrencies integrations"
+			/>
 			<meta name="og:title" content="Talo Docs" />
 		</>
 	),
