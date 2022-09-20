@@ -1,3 +1,5 @@
+import React from "react"
+
 // theme.config.js
 export default {
 	projectLink: "https://github.com/talo-pay/docs", // GitHub link in the navbar
@@ -12,8 +14,14 @@ export default {
 	footerText: `MIT ${new Date().getFullYear()} © talo`,
 	footerEditLink: `Edit this page on GitHub`,
 	logo: (
-		<>
+		<React.Fragment>
 			<div>
+				{/* {document.documentElement.classList.contains("dark") ? (
+					<img
+						style={{ width: 173, height: 93, paddingTop: 7, paddingBottom: 7 }}
+						src="/talo_logo_dark.png"
+					/>
+				) : ( */}
 				<svg
 					style={{ paddingTop: 7, paddingBottom: 7 }}
 					width="173"
@@ -51,9 +59,10 @@ export default {
 						fill="#252626"
 					/>
 				</svg>
+				{/* )} */}
 			</div>
 			<span>Talo Docs</span>
-		</>
+		</React.Fragment>
 	),
 	head: (
 		<>
