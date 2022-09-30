@@ -1,0 +1,100 @@
+# API PAYMENTS 1.0.0
+
+API con endpoints para interactuar con pagos
+
+
+
+## `POST /payments/`
+
+### Parámetros
+
+| Parametro | Tipo | Descripción | Obligatorio | Ejemplo |
+| :-------: | :--: | :---------: | :---------: | :-----: |
+| price | object | Indica el precio en la moneda que se desee establecer el precio. | true | `{currency:'nuARS',amount:1500}` |
+| user_id | string | El id del usuario que esta creando el pago. | true | `a123456789` |
+| webhook_url | string | Dirección en la cual se notificará al usuario el estado del pago. | false | `https://mynotificationurl.com/payment?id=123` |
+| redirect_url | string | Url a la cual redirigir al usuario una vez que se haya completado el pago | true | `https://fabrica.com/checkout/1234` |
+| external_id | string | Id del pago en el sistema del comercio | true | `ID_INTERNO_1234` |
+| items | array | Array de items que se desean comprar | false | `[{title:'Producto 1',description:'Descripción del producto 1',quantity:1,unit_price:{currency:'nuARS',amount:1500}}]` |
+
+Ejemplo de uso
+
+```js
+fetch("https://api.talo.com.ar/payments/", 
+	{
+		method: "POST",
+		body: JSON.stringify(
+			{
+  "price": {
+    "currency": "nuARS",
+    "amount": 1500
+  },
+  "user_id": "32392bb0-ae84-4fd5-8d2c-20a8fa51cad8",
+  "redirect_url": "fabricadefotolibros.com/checkout/1234",
+  "external_id": "FDF_987654"
+}
+		),
+	}
+)
+```
+
+### Respuesta
+
+| Atributo  | Tipo | Descripción |
+| :-------: | :--: | :---------: | 
+| message | string | Mensaje de respuesta |
+| error | bool | Indica si hubo error o no |
+| data | object | Objeto con la información del pago |
+
+
+Ejemplo
+```
+{
+  "message": "ok",
+  "error": false,
+  "code": 200,
+  "data": {
+    "user_info": {
+      "displayName": "Fabrica de Fotolibros",
+      "email": "jose@fabricadefotolibros"
+    },
+    "quotes": [
+      {
+        "amount": "4037655403061822533",
+        "currency": "BUSD",
+        "amountReadable": 4.037655403061822,
+        "address": "0x92f0852Cf8281C811F4Fea547B26c3b7E58d5D3C",
+        "network": "BSC"
+      },
+      {
+        "amount": "14314586772925146",
+        "currency": "BNB",
+        "amountReadable": 0.014314586772925146,
+        "address": "0x92f0852Cf8281C811F4Fea547B26c3b7E58d5D3C",
+        "network": "BSC"
+      },
+      {
+        "amount": "4039423328002263936",
+        "currency": "USDC",
+        "amountReadable": 4.039423328002264,
+        "address": "0x92f0852Cf8281C811F4Fea547B26c3b7E58d5D3C",
+        "network": "BSC"
+      }
+    ],
+    "creation_timestamp": "2022-09-27T15:50:57.440Z",
+    "payment_status": "PENDING",
+    "user_id": "6851ea13-aaf4-4410-ab7c-633619044246",
+    "payment_url": "https://sandbox.talo.com.ar/payments/01GDZT9T506HDSFAQ9X25BAJJG",
+    "webhook_url": "http://localhost:3000/dashboard",
+    "redirect_url": "http://localhost:3000/dashboard",
+    "external_id": "FDF_106503",
+    "id": "01GDZT9T506HDSFAQ9X25BAJJG",
+    "price": {
+      "currency": "nuARS",
+      "amount": 1200
+    }
+  }
+}
+```
+
+

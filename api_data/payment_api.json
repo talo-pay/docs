@@ -1,0 +1,127 @@
+{
+	"api_name": "payments",
+	"api_description": "API con endpoints para interactuar con pagos",
+	"base_path": "payments",
+	"version": "1.0.0",
+	"endpoints": [
+		{
+			"method": "POST",
+			"relative_path": "/",
+
+			"request": {
+				"body": {
+					"price": {
+						"tipo": "object",
+						"requerido": true,
+						"descripcion": "Indica el precio en la moneda que se desee establecer el precio.",
+						"ejemplo": "{currency:'nuARS',amount:1500}"
+					},
+					"user_id": {
+						"tipo": "string",
+						"requerido": true,
+						"descripcion": "El id del usuario que esta creando el pago.",
+						"ejemplo": "a123456789"
+					},
+					"webhook_url": {
+						"tipo": "string",
+						"requerido": false,
+						"descripcion": "Dirección en la cual se notificará al usuario el estado del pago.",
+						"ejemplo": "https://mynotificationurl.com/payment?id=123"
+					},
+					"redirect_url": {
+						"tipo": "string",
+						"requerido": true,
+						"descripcion": "Url a la cual redirigir al usuario una vez que se haya completado el pago",
+						"ejemplo": "https://fabrica.com/checkout/1234"
+					},
+					"external_id": {
+						"tipo": "string",
+						"requerido": true,
+						"descripcion": "Id del pago en el sistema del comercio",
+						"ejemplo": "ID_INTERNO_1234"
+					},
+					"items": {
+						"tipo": "array",
+						"requerido": false,
+						"descripcion": "Array de items que se desean comprar",
+						"ejemplo": "[{title:'Producto 1',description:'Descripción del producto 1',quantity:1,unit_price:{currency:'nuARS',amount:1500}}]"
+					}
+				},
+				"example": {
+					"price": {
+						"currency": "nuARS",
+						"amount": 1500
+					},
+					"user_id": "32392bb0-ae84-4fd5-8d2c-20a8fa51cad8",
+					"redirect_url": "fabricadefotolibros.com/checkout/1234",
+					"external_id": "FDF_987654"
+				}
+			},
+			"response": {
+				"body": {
+					"message": {
+						"tipo": "string",
+						"descripcion": "Mensaje de respuesta",
+						"ejemplo": "ok"
+					},
+					"error": {
+						"tipo": "bool",
+						"descripcion": "Indica si hubo error o no",
+						"ejemplo": "true"
+					},
+					"data": {
+						"tipo": "object",
+						"descripcion": "Objeto con la información del pago",
+						"ejemplo": "{id:1234,external_id:\"ID_INTERNO_1234\",status:\"pending\",price:{currency:\"nuARS\",amount:1500},items:[{title:\"Producto 1\",description:\"Descripción del producto 1\",quantity:1,unit_price:{currency:\"nuARS\",amount:1500}}],user_id:\"a123456789\",webhook_url:\"https://mynotificationurl.com/payment?id=123\",redirect_url:\"https://fabrica.com/checkout/1234\",created_at:\"2019-01-01T00:00:00.000Z\",updated_at:\"2019-01-01T00:00:00.000Z\"}"
+					}
+				},
+				"example": {
+					"message": "ok",
+					"error": false,
+					"code": 200,
+					"data": {
+						"user_info": {
+							"displayName": "Fabrica de Fotolibros",
+							"email": "jose@fabricadefotolibros"
+						},
+						"quotes": [
+							{
+								"amount": "4037655403061822533",
+								"currency": "BUSD",
+								"amountReadable": 4.037655403061822,
+								"address": "0x92f0852Cf8281C811F4Fea547B26c3b7E58d5D3C",
+								"network": "BSC"
+							},
+							{
+								"amount": "14314586772925146",
+								"currency": "BNB",
+								"amountReadable": 0.014314586772925146,
+								"address": "0x92f0852Cf8281C811F4Fea547B26c3b7E58d5D3C",
+								"network": "BSC"
+							},
+							{
+								"amount": "4039423328002263936",
+								"currency": "USDC",
+								"amountReadable": 4.039423328002264,
+								"address": "0x92f0852Cf8281C811F4Fea547B26c3b7E58d5D3C",
+								"network": "BSC"
+							}
+						],
+						"creation_timestamp": "2022-09-27T15:50:57.440Z",
+						"payment_status": "PENDING",
+						"user_id": "6851ea13-aaf4-4410-ab7c-633619044246",
+						"payment_url": "https://sandbox.talo.com.ar/payments/01GDZT9T506HDSFAQ9X25BAJJG",
+						"webhook_url": "http://localhost:3000/dashboard",
+						"redirect_url": "http://localhost:3000/dashboard",
+						"external_id": "FDF_106503",
+						"id": "01GDZT9T506HDSFAQ9X25BAJJG",
+						"price": {
+							"currency": "nuARS",
+							"amount": 1200
+						}
+					}
+				}
+			}
+		}
+	]
+}
