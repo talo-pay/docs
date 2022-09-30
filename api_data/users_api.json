@@ -1,0 +1,67 @@
+{
+	"api_name": "users",
+	"api_description": "API con endpoints para administrar el usuario",
+	"base_path": "users",
+	"version": "1.0.0",
+	"endpoints": [
+		{
+			"method": "POST",
+			"relative_path": "/:id/tokens",
+			"request": {
+				"body": {
+					"client_id": {
+						"tipo": "string",
+						"descripcion": "Identificador de la credencial del usuario",
+						"requerido": true,
+						"ejemplo": "aaaaa1234567890"
+					},
+					"client_secret": {
+						"tipo": "string",
+						"descripcion": "Clave secreta de la credencial del usuario",
+						"requerido": true,
+						"ejemplo": "bbba1234567890abbb"
+					}
+				},
+				"body_example": {
+					"client_id": "aaaaa1234567890",
+					"client_secret": "bbba1234567890abbb"
+				},
+				"path": {
+					"id": {
+						"tipo": "string",
+						"descripcion": "Identificador del usuario",
+						"requerido": true,
+						"ejemplo": "dddd1234567890"
+					}
+				},
+				"path_example": "/exaask223332/tokens"
+			},
+			"response": {
+				"body": {
+					"message": {
+						"tipo": "string",
+						"descripcion": "Mensaje de respuesta",
+						"ejemplo": "ok"
+					},
+					"error": {
+						"tipo": "bool",
+						"descripcion": "Indica si hubo error o no",
+						"ejemplo": "true"
+					},
+					"data": {
+						"tipo": "object",
+						"descripcion": "Objeto con la información del pago",
+						"ejemplo": "{id:1234,external_id:\"ID_INTERNO_1234\",status:\"pending\",price:{currency:\"nuARS\",amount:1500},items:[{title:\"Producto 1\",description:\"Descripción del producto 1\",quantity:1,unit_price:{currency:\"nuARS\",amount:1500}}],user_id:\"a123456789\",webhook_url:\"https://mynotificationurl.com/payment?id=123\",redirect_url:\"https://fabrica.com/checkout/1234\",created_at:\"2019-01-01T00:00:00.000Z\",updated_at:\"2019-01-01T00:00:00.000Z\"}"
+					}
+				},
+				"example": {
+					"message": "ok",
+					"error": false,
+					"data": {
+						"token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c"
+					}
+				}
+			}
+		}
+	]
+}

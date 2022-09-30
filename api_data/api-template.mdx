@@ -1,26 +1,41 @@
-# API <%= api_name.toUpperCase() %> <%= version %>
+# API <%= api_name.toUpperCase() %> v<%= version %>
 
 <%= api_description %>
 
+### Endpoints
+```
+<% endpoints.forEach(function(endpoint){ %> <%= endpoint.method.toUpperCase() %> <%= "/" + base_path + endpoint.relative_path %> 
+<% }) %>```
 <% endpoints.forEach(function(endpoint){%>
 
 ## `<%= endpoint.method.toUpperCase() %> <%= "/" + base_path + endpoint.relative_path %>`
 
-### Parámetros
-
+<% if(endpoint.request.path){ %>
+### Path parameters
+| Parametro | Tipo | Descripción | Obligatorio | Ejemplo |
+| :-------: | :--: | :---------: | :---------: | :-----: |
+<%_ Object.keys(endpoint.request.path).forEach(function (key){ %>| <%= key %> | <%= endpoint.request.path[key].tipo %> | <%- endpoint.request.path[key].descripcion %> | <%= endpoint.request.path[key].requerido %> | `<%- endpoint.request.path[key].ejemplo %>` |
+<% }) %>
+<% } %>
+<% if(endpoint.request.body){ %>
+### Request body
 | Parametro | Tipo | Descripción | Obligatorio | Ejemplo |
 | :-------: | :--: | :---------: | :---------: | :-----: |
 <%_ Object.keys(endpoint.request.body).forEach(function (key){ %>| <%= key %> | <%= endpoint.request.body[key].tipo %> | <%- endpoint.request.body[key].descripcion %> | <%= endpoint.request.body[key].requerido %> | `<%- endpoint.request.body[key].ejemplo %>` |
 <% }) %>
+<% } %>
+
 Ejemplo de uso
 
 ```js
-fetch("<%= "https://api.talo.com.ar/" + base_path + endpoint.relative_path %>", 
+fetch("<%= "https://api.talo.com.ar/" + base_path + endpoint.request.path_example %>", 
 	{
 		method: "<%= endpoint.method.toUpperCase() %>",
+		<% if(endpoint.request.body_example){ %>
 		body: JSON.stringify(
-			<%- JSON.stringify(endpoint.request.example, undefined, 2) %>
+			<%- JSON.stringify(endpoint.request.body_example, undefined, 2) %>
 		),
+		<% } %>
 	}
 )
 ```

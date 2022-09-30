@@ -1,3 +1,4 @@
 {
-	"payment_api": "Pagos"
+	"payment_api": "Pagos",
+	"users_api": "Usuarios"
 }

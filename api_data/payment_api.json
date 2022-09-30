@@ -47,7 +47,7 @@
 						"ejemplo": "[{title:'Producto 1',description:'Descripción del producto 1',quantity:1,unit_price:{currency:'nuARS',amount:1500}}]"
 					}
 				},
-				"example": {
+				"body_example": {
 					"price": {
 						"currency": "nuARS",
 						"amount": 1500
@@ -55,7 +55,8 @@
 					"user_id": "32392bb0-ae84-4fd5-8d2c-20a8fa51cad8",
 					"redirect_url": "fabricadefotolibros.com/checkout/1234",
 					"external_id": "FDF_987654"
-				}
+				},
+				"path_example": "/"
 			},
 			"response": {
 				"body": {
@@ -119,6 +120,101 @@
 							"currency": "nuARS",
 							"amount": 1200
 						}
+					}
+				}
+			}
+		},
+		{
+			"method": "GET",
+			"relative_path": "/:id",
+			"request": {
+				"path": {
+					"id": {
+						"tipo": "string",
+						"descripcion": "ID del pago",
+						"ejemplo": "aaa111683cb04ec4af867",
+						"requerido": true
+					}
+				},
+				"path_example": "/aaa111683cb04ec4af867"
+			},
+			"response": {
+				"body": {
+					"message": {
+						"tipo": "string",
+						"descripcion": "Mensaje de respuesta",
+						"ejemplo": "ok"
+					},
+					"error": {
+						"tipo": "bool",
+						"descripcion": "Indica si hubo error o no",
+						"ejemplo": "true"
+					},
+					"data": {
+						"tipo": "object",
+						"descripcion": "Objeto con la información del pago",
+						"ejemplo": "{id:1234,external_id:\"ID_INTERNO_1234\",status:\"pending\",price:{currency:\"nuARS\",amount:1500},items:[{title:\"Producto 1\",description:\"Descripción del producto 1\",quantity:1,unit_price:{currency:\"nuARS\",amount:1500}}],user_id:\"a123456789\",webhook_url:\"https://mynotificationurl.com/payment?id=123\",redirect_url:\"https://fabrica.com/checkout/1234\",created_at:\"2019-01-01T00:00:00.000Z\",updated_at:\"2019-01-01T00:00:00.000Z\"}"
+					}
+				},
+				"example": {
+					"message": "ok",
+					"error": false,
+					"code": 200,
+					"data": {
+						"user_info": {
+							"displayName": "Fabrica de Fotolibros",
+							"email": "jose@fabricadefotolibros"
+						},
+						"quotes": [
+							{
+								"amount": "18364008254428209991",
+								"currency": "BUSD",
+								"amountReadable": 18.36400825442821,
+								"address": "0x774Cec9aBDBb4a05c97f45A3Cf623d2370C47375",
+								"network": "BSC"
+							},
+							{
+								"amount": "62240914411206852",
+								"currency": "BNB",
+								"amountReadable": 0.06224091441120685,
+								"address": "0x774Cec9aBDBb4a05c97f45A3Cf623d2370C47375",
+								"network": "BSC"
+							},
+							{
+								"amount": "18424732901316649018",
+								"currency": "USDC",
+								"amountReadable": 18.42473290131665,
+								"address": "0x774Cec9aBDBb4a05c97f45A3Cf623d2370C47375",
+								"network": "BSC"
+							}
+						],
+						"last_modified_timestamp": "2022-09-12T07:52:05.898Z",
+						"transaction_fields": {
+							"transaction_id": "aaa111683cb04ec4af867",
+							"amount": "62240914411206850",
+							"address": "0x774Cec9aBDBb4a05c97f45A3Cf623d2370C47375",
+							"is_deleted": false,
+							"creation_timestamp": "2022-09-12T07:52:04.262Z",
+							"last_modified_timestamp": "2022-09-12T07:52:04.262Z",
+							"currency": "BNB",
+							"commission": 1,
+							"type": "INBOUND",
+							"transaction_hash": "0x2164f3567214ce463bc688605bdbfcb9401436dffb19d88689c6a6913fe56c3d",
+							"network": "BSC"
+						},
+						"creation_timestamp": "2022-09-12T07:51:14.127Z",
+						"payment_status": "UNDERPAID",
+						"user_id": "exaask223332",
+						"payment_url": "https://d3e9ln1d0tu6ol.cloudfront.net/payments/01GCRAWMEGZWWWHY64XG9NMJ51",
+						"webhook_url": "http://localhost:3000/dashboard",
+						"redirect_url": "http://localhost:3000/dashboard",
+						"external_id": "FDF_106503",
+						"id": "aaa111683cb04ec4af867",
+						"price": {
+							"currency": "nuARS",
+							"amount": 5000
+						},
+						"is_deleted": false
 					}
 				}
 			}

@@ -1,0 +1,67 @@
+# API USERS v1.0.0
+
+API con endpoints para administrar el usuario
+
+### Endpoints
+```
+ POST /users/:id/tokens 
+```
+
+
+## `POST /users/:id/tokens`
+
+
+### Path parameters
+| Parametro | Tipo | Descripción | Obligatorio | Ejemplo |
+| :-------: | :--: | :---------: | :---------: | :-----: |
+| id | string | Identificador del usuario | true | `dddd1234567890` |
+
+
+
+### Request body
+| Parametro | Tipo | Descripción | Obligatorio | Ejemplo |
+| :-------: | :--: | :---------: | :---------: | :-----: |
+| client_id | string | Identificador de la credencial del usuario | true | `aaaaa1234567890` |
+| client_secret | string | Clave secreta de la credencial del usuario | true | `bbba1234567890abbb` |
+
+
+
+Ejemplo de uso
+
+```js
+fetch("https://api.talo.com.ar/users/exaask223332/tokens", 
+	{
+		method: "POST",
+		
+		body: JSON.stringify(
+			{
+  "client_id": "aaaaa1234567890",
+  "client_secret": "bbba1234567890abbb"
+}
+		),
+		
+	}
+)
+```
+
+### Respuesta
+
+| Atributo  | Tipo | Descripción |
+| :-------: | :--: | :---------: | 
+| message | string | Mensaje de respuesta |
+| error | bool | Indica si hubo error o no |
+| data | object | Objeto con la información del pago |
+
+
+Ejemplo
+```
+{
+  "message": "ok",
+  "error": false,
+  "data": {
+    "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c"
+  }
+}
+```
+
+

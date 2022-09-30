@@ -1,13 +1,19 @@
-# API PAYMENTS 1.0.0
+# API PAYMENTS v1.0.0
 
 API con endpoints para interactuar con pagos
 
+### Endpoints
+```
+ POST /payments/ 
+ GET /payments/:id 
+```
 
 
 ## `POST /payments/`
 
-### Parámetros
 
+
+### Request body
 | Parametro | Tipo | Descripción | Obligatorio | Ejemplo |
 | :-------: | :--: | :---------: | :---------: | :-----: |
 | price | object | Indica el precio en la moneda que se desee establecer el precio. | true | `{currency:'nuARS',amount:1500}` |
@@ -17,12 +23,15 @@ API con endpoints para interactuar con pagos
 | external_id | string | Id del pago en el sistema del comercio | true | `ID_INTERNO_1234` |
 | items | array | Array de items que se desean comprar | false | `[{title:'Producto 1',description:'Descripción del producto 1',quantity:1,unit_price:{currency:'nuARS',amount:1500}}]` |
 
+
+
 Ejemplo de uso
 
 ```js
 fetch("https://api.talo.com.ar/payments/", 
 	{
 		method: "POST",
+		
 		body: JSON.stringify(
 			{
   "price": {
@@ -34,6 +43,7 @@ fetch("https://api.talo.com.ar/payments/",
   "external_id": "FDF_987654"
 }
 		),
+		
 	}
 )
 ```
@@ -93,6 +103,104 @@ Ejemplo
       "currency": "nuARS",
       "amount": 1200
     }
+  }
+}
+```
+
+
+
+## `GET /payments/:id`
+
+
+### Path parameters
+| Parametro | Tipo | Descripción | Obligatorio | Ejemplo |
+| :-------: | :--: | :---------: | :---------: | :-----: |
+| id | string | ID del pago | true | `aaa111683cb04ec4af867` |
+
+
+
+
+Ejemplo de uso
+
+```js
+fetch("https://api.talo.com.ar/payments/aaa111683cb04ec4af867", 
+	{
+		method: "GET",
+		
+	}
+)
+```
+
+### Respuesta
+
+| Atributo  | Tipo | Descripción |
+| :-------: | :--: | :---------: | 
+| message | string | Mensaje de respuesta |
+| error | bool | Indica si hubo error o no |
+| data | object | Objeto con la información del pago |
+
+
+Ejemplo
+```
+{
+  "message": "ok",
+  "error": false,
+  "code": 200,
+  "data": {
+    "user_info": {
+      "displayName": "Fabrica de Fotolibros",
+      "email": "jose@fabricadefotolibros"
+    },
+    "quotes": [
+      {
+        "amount": "18364008254428209991",
+        "currency": "BUSD",
+        "amountReadable": 18.36400825442821,
+        "address": "0x774Cec9aBDBb4a05c97f45A3Cf623d2370C47375",
+        "network": "BSC"
+      },
+      {
+        "amount": "62240914411206852",
+        "currency": "BNB",
+        "amountReadable": 0.06224091441120685,
+        "address": "0x774Cec9aBDBb4a05c97f45A3Cf623d2370C47375",
+        "network": "BSC"
+      },
+      {
+        "amount": "18424732901316649018",
+        "currency": "USDC",
+        "amountReadable": 18.42473290131665,
+        "address": "0x774Cec9aBDBb4a05c97f45A3Cf623d2370C47375",
+        "network": "BSC"
+      }
+    ],
+    "last_modified_timestamp": "2022-09-12T07:52:05.898Z",
+    "transaction_fields": {
+      "transaction_id": "aaa111683cb04ec4af867",
+      "amount": "62240914411206850",
+      "address": "0x774Cec9aBDBb4a05c97f45A3Cf623d2370C47375",
+      "is_deleted": false,
+      "creation_timestamp": "2022-09-12T07:52:04.262Z",
+      "last_modified_timestamp": "2022-09-12T07:52:04.262Z",
+      "currency": "BNB",
+      "commission": 1,
+      "type": "INBOUND",
+      "transaction_hash": "0x2164f3567214ce463bc688605bdbfcb9401436dffb19d88689c6a6913fe56c3d",
+      "network": "BSC"
+    },
+    "creation_timestamp": "2022-09-12T07:51:14.127Z",
+    "payment_status": "UNDERPAID",
+    "user_id": "exaask223332",
+    "payment_url": "https://d3e9ln1d0tu6ol.cloudfront.net/payments/01GCRAWMEGZWWWHY64XG9NMJ51",
+    "webhook_url": "http://localhost:3000/dashboard",
+    "redirect_url": "http://localhost:3000/dashboard",
+    "external_id": "FDF_106503",
+    "id": "aaa111683cb04ec4af867",
+    "price": {
+      "currency": "nuARS",
+      "amount": 5000
+    },
+    "is_deleted": false
   }
 }
 ```
