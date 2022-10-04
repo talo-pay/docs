@@ -1,0 +1,22 @@
+# Errores
+
+La API de **talo** usa el estándar HTTP para los códigos de respuesta los requests de la API.
+Los diferentes rangos de código de respuesta indican el estado y la causa de la solicitud.
+
+- `2xx` solicitud exitosa
+- `4xx` error en la información provista en la solicitud
+- `5xx` error los servidores de **talo**
+
+### Resumen de códigos de estado HTTP
+
+<br></br>
+
+| Código |        Mensaje        | Descripción                                                                               |
+| :----: | :-------------------: | :---------------------------------------------------------------------------------------- |
+|  200   |          OK           | La solicitud finalizó como se esperaba                                                    |
+|  400   |      Bad Request      | La solicitud falló debido a algún parámetro o encabezado inválido o faltante              |
+|  401   |     Unauthorized      | La solicitud falló por falta o invalidez del token de autenticación                       |
+|  403   |       Forbidden       | La solicitud falló porque el usuario autenticado no tiene permiso para acceder al recurso |
+|  404   |       Not Found       | La solicitud falló porque no se encontró el recurso solicitado                            |
+|  422   |   Validation Error    | La solicitud falló por falta o invalidez de un parámetro                                  |
+|  500   | Internal Server Error | La solicitud falló por un problema del lado de **talo**                                   |

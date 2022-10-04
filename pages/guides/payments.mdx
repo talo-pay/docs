@@ -1,0 +1,30 @@
+import Callout from "nextra-theme-docs/callout"
+
+# Guía para recibir pagos
+
+<Callout>
+	{" "}
+	Para comenzar con esta guía es necesario tener una cuenta de **talo**. Para más
+	información visitá [Primeros pasos](/getting_started)
+</Callout>
+
+### 1. Crear un pago
+
+Desde tu sistema tenés que consumir nuestro endpoint para crear un pago:<br></br>
+`POST https://api.talo.com.ar/payments/` <br></br>
+En la solicitud que envíes es necesario que incluyas información sobre el pago. Ésta información y su formato están detallados en la sección de [Referencia de API](../API/payment_api).
+
+<Callout>
+	Para poder notificarte de los estados por los que pasa el pago es importante
+	que en el campo `webhook_url` de la solicitud especifiques la URL a la cuál
+	notificar de los cambios.
+</Callout>
+
+### 2. Redirigí al usuario a la URL de **talo**
+
+La respuesta a la solicitud de creación de pago contiene la información sobre el pago creado y además un campo con clave `payment_url`. Esta es la URL provista por **talo** para que desde tu plataforma digital de e-commerce redirijas al usuario para que pueda pagar.
+La redirección del cliente es a una página de **talo** que le permite elegir la criptomoneda con la cual pagar y luego presenta un QR para que pueda finalizar el pago.
+
+### 3. Procesá desde tu plataforma las notificaciones sobre el estado de los pagos
+
+Como se indicó en el primer punto ante cada cambio en el estado de un pago **talo** envía una notificación a la URL especificada como `webhook_url` en la solicitud. Desde tu plataforma podés implementar una lógica para procesar estas notificaciones y actualizar tu sistema en función de las mismas.

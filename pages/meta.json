@@ -1,7 +1,9 @@
 {
 	"index": "Talo docs",
 	"getting_started": "Primeros pasos",
+	"sandbox": "Modo sandbox",
 	"guides": "Guías",
 	"API": "Referencia de API",
-	"changelog": "Historial de cambios"
+	"changelog": "Historial de cambios",
+	"resources": "Recursos adicionales"
 }

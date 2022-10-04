@@ -1,13 +1,35 @@
 import Callout from "nextra-theme-docs/callout"
+import Link from "next/link"
 
 # Primeros Pasos
 
-<Callout emoji="✅">
-	**TALO** es un sistema para que puedas aceptar pagos en criptomonedas desde tu
-	ecommerce o negocio a la calle. El unico requerimiento para crearte una cuenta
-	es tener un mail. Sin KYC sin Molestias.
-</Callout>
+### ¿Cómo empiezo a cobrar en criptomonedas?
 
-Si ya tenes una cuenta de Talo creada lo unico que necesitas es encontrar cual es la solucion que mejor se adapta a tus circunstancias.
+Estos pasos son los que hay que seguir para comenzar:
 
-Por ahora, contamos con una API que
+1. Create tu cuenta de **talo**
+2. Realizar la integración para recibir pagos.
+3. Probá la integración en modo sandbox
+4. Deployá la integración a producción.
+5. Monitoreá los pagos desde el tablero de **talo**.
+
+## 1. Crea tu cuenta de **talo**
+
+Para poder crear una cuenta de **talo** solo necesitás tener una cuenta de email. <Link href="https://talo.com.ar/signup"> Registrate </Link> ingresando tu email y una contraseña y luego verificá tu e-mail para poder comenzar a recibir pagos.
+
+## 2. Realizar la integración para recibir pagos
+
+El siguiente paso es realizar la integración con la API de **talo** para comenzar a recibir los pagos. Pasá por nuestra <Link href="/guides/payments">guía de pagos</Link> para saber el paso a paso de la integración.
+
+## 3. Probá la integración en modo sandbox
+
+Una vez que lograste completar el flujo de pago como se indica en la guía de la integración de pagos ya es momento de comenzar con las pruebas. **Talo** cuenta con un modo sandbox para poder realizar las pruebas de forma segura y sin riesgo.
+La <Link href="/sandbox">sección del sandbox</Link> tiene más información sobre este modo. Para realizar las pruebas podés seguir el paso a paso de la <Link href="/guides/testing">guía para hacer pruebas</Link>.
+
+## 4. Deployá la integración a producción
+
+¡Ya casi terminás! Lo único que falta es que una vez conforme con las pruebas realizadas deployes la integración a tu sistema en producción para que lo puedan comenzar a utilizar tus clientes cuánto antes.
+
+## 5. Monitoreá los pagos desde el tablero de **talo**
+
+¡Listo! Ya sos parte de la transición al mundo de las criptomonedas. Para poder monitorear y llevar registro de los pagos que se realizan en criptomonedas podés ingresar en tu tablero de **talo** y extraer de ahí los datos que necesites.

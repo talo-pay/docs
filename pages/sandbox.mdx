@@ -1,0 +1,48 @@
+import AddNetworkButton from "../components/AddNetworkButton"
+import Link from "next/link"
+import Callout from "nextra-theme-docs/callout"
+
+# Modo Sandbox
+
+Para poder hacer pruebas con la API sin utilizar fondos reales, **talo** cuenta con un modo sandbox o modo de prueba. Lo podes acceder creandote una cuenta en [`Talo Sandbox`](https://sandbox.talo.com.ar), con tus mismas credenciales que en tu cuenta real, u otras completamente nuevas.
+
+<Callout>
+	Tené en cuenta que la cuenta de *Sandbox* es independiente a la cuenta de
+	talo. Los fondos en modo sandbox no tienen valor real, son simplemente para
+	poder realizar pruebas.{" "}
+</Callout>
+## Enviar dinero a los pagos creados
+
+Ahora que ya tenés cuenta en el modo Sandbox, lo unico que falta es comenzar a crear ordenes de pago y transferirles dinero para probar todo el ciclo del proceso de pago.
+El modo sandbox utiliza redes de prueba, podés leer el [artículo](https://www.linkedin.com/posts/talo-payments_startup-testnet-blockchain-activity-6976545056941850624-fF-2?utm_source=share&utm_medium=member_desktop) para tener más información sobre su funcionamiento.
+
+### 1.Billetera para Sandbox
+
+La forma mas segura de enviar y recibir criptomonedas es desde una billetera descentralizada como [Metamask](https://metamask.io/). Si ya tenés descargada la billetera y una cuenta creada, solo te falta agregar la red de prueba e ir a la "canilla", que te proveera fondos de prueba.
+
+### 2.Agregar Redes de prueba
+
+Por default, en billeteras como Metamask ya está configurada la red de Ethereum principal, tambien llamada _Ethereum Mainnet_, desde un principio. Para poder realizar transacciones en la red de prueba hay que agregarla manualmente a la billetera. Clickea en el siguente boton para que se cargue la informacion predeterminada de la red de prueba de BSC.
+
+<br />
+<AddNetworkButton />
+
+Alternativamente, si tuviste problemas agregandolo de esta forma, podes agregarla manualmente vos siguendo el tutorial en la pagina de [Binance Smart Chain](https://academy.binance.com/es/articles/connecting-metamask-to-binance-smart-chain)
+
+### 3.Conseguir fondos de prueba
+
+Para poder probar protocolos y realizar transacciones en un ambiente de prueba existen sitios llamados faucets que disponibilizan tokens y monedas para utilizar en las testnets. Como pertenecen a las redes de pruebas estos tokens no tienen ningún valor real, simplemente nos permiten probar interacciones de forma segura.
+Estos son los enlaces a los faucets de algunas redes de prueba comúnmente utilizadas:
+
+<br />
+<br />
+
+| Network     |                faucet url                |
+| :---------- | :--------------------------------------: |
+| BSC Testnet | https://testnet.binance.org/faucet-smart |
+
+<Callout emoji="✅">
+	**Listo**. Ya estas listo para comenzar a{" "}
+	<Link href="/guides/testing">probar tu integracion</Link> antes de salir a
+	produccion.
+</Callout>
