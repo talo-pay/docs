@@ -1,4 +1,7 @@
 {
+	"introduction": "Introducción",
 	"payment_api": "Pagos",
-	"users_api": "Usuarios"
+	"users_api": "Usuarios",
+	"versioning": "Versionado",
+	"errors": "Errores"
 }

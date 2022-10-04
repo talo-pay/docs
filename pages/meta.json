@@ -1,4 +1,7 @@
 {
-	"index": "Primeros Pasos",
-	"API": "Referencia de API"
+	"index": "Talo docs",
+	"getting_started": "Primeros pasos",
+	"guides": "Guías",
+	"API": "Referencia de API",
+	"changelog": "Historial de cambios"
 }
