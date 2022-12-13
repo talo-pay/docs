@@ -1,15 +1,15 @@
 # API
 
-Para comenzar a recibir pagos en criptomonedas haciendo una integración directa con la API, se deberan usar principalmente un endpoint.
+Para comenzar a recibir pagos en criptomonedas haciendo una integración directa con la API, se deberán usar principalmente un endpoint.
 
 ## `POST /payments`
 
 | Parametro    |                                       Description                                       | Obligatorio |                             Ejemplo |
 | :----------- | :-------------------------------------------------------------------------------------: | :---------: | ----------------------------------: |
-| price        |            Indica el precio en la moneda que se desee establecer el precio.             |     yes     |    `{currency:"nuARS",amount:1500}` |
-| user_id      |                       El id del usuario que esta creando el pago.                       |     yes     |
-| webhook_url  |            Direccion en la cual se avisara al usuario que el Pago se recibio            |
-| redirect_url |        Url a la cual redirigir al usuario una vez que se haya completado el pago        |     no      | `https://fabrica.com/checkout/1234` |
+| price        |            Indica el precio en la moneda que se desee establecer el precio              |     yes     |    `{currency:"nuARS",amount:1500}` |
+| user_id      |                       El id del usuario que está creando el pago                        |     yes     |
+| webhook_url  |            Dirección en la cual se avisara al usuario que el Pago se recibió            |
+| redirect_url |        URL a la cual redirigir al usuario una vez que se haya completado el pago        |     no      | `https://fabrica.com/checkout/1234` |
 | external_id  |                        Campo para permitir guardar id's internas                        |     no      |                        `FDF_987654` |
 | items        | Campo para mostrar en la pantalla de pagos la lista de productos que se estan comprando |     no      |                                   - |
 
