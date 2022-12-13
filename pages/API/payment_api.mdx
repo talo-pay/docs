@@ -1,6 +1,6 @@
 # API PAYMENTS v1.0.0
 
-API con endpoints para interactuar con pagos
+API con endpoints para interactuar con pagos.
 
 ### Endpoints
 ```
@@ -16,9 +16,9 @@ API con endpoints para interactuar con pagos
 ### Request body
 | Parametro | Tipo | Descripción | Obligatorio | Ejemplo |
 | :-------: | :--: | :---------: | :---------: | :-----: |
-| price | object | Indica el precio en la moneda que se desee establecer el precio. | true | `{currency:'nuARS',amount:1500}` |
-| user_id | string | El id del usuario que esta creando el pago. | true | `a123456789` |
-| webhook_url | string | Dirección en la cual se notificará al usuario el estado del pago. | false | `https://mynotificationurl.com/payment?id=123` |
+| price | object | Indica el precio en la moneda que se desee establecer el precio | true | `{currency:'nuARS',amount:1500}` |
+| user_id | string | El id del usuario que está creando el pago | true | `a123456789` |
+| webhook_url | string | Dirección en la cual se notificará al usuario el estado del pago | false | `https://mynotificationurl.com/payment?id=123` |
 | redirect_url | string | Url a la cual redirigir al usuario una vez que se haya completado el pago | true | `https://fabrica.com/checkout/1234` |
 | external_id | string | Id del pago en el sistema del comercio | true | `ID_INTERNO_1234` |
 | items | array | Array de items que se desean comprar | false | `[{title:'Producto 1',description:'Descripción del producto 1',quantity:1,unit_price:{currency:'nuARS',amount:1500}}]` |
@@ -28,23 +28,23 @@ API con endpoints para interactuar con pagos
 Ejemplo de uso
 
 ```js
-fetch("https://api.talo.com.ar/payments/", 
-	{
-		method: "POST",
-		
-		body: JSON.stringify(
-			{
-  "price": {
-    "currency": "nuARS",
-    "amount": 1500
-  },
-  "user_id": "32392bb0-ae84-4fd5-8d2c-20a8fa51cad8",
-  "redirect_url": "fabricadefotolibros.com/checkout/1234",
-  "external_id": "FDF_987654"
-}
-		),
-		
-	}
+fetch("https://api.talo.com.ar/payments/",
+    {
+        method: "POST",
+
+        body: JSON.stringify(
+            {
+                "price": {
+                    "currency": "nuARS",
+                    "amount": 1500
+                },
+                "user_id": "32392bb0-ae84-4fd5-8d2c-20a8fa51cad8",
+                "redirect_url": "fabricadefotolibros.com/checkout/1234",
+                "external_id": "FDF_987654"
+            }
+        ),
+
+    }
 )
 ```
 
@@ -115,7 +115,7 @@ Ejemplo
 ### Path parameters
 | Parametro | Tipo | Descripción | Obligatorio | Ejemplo |
 | :-------: | :--: | :---------: | :---------: | :-----: |
-| id | string | ID del pago | true | `aaa111683cb04ec4af867` |
+| id | string | ID del pago. | true | `aaa111683cb04ec4af867` |
 
 
 
@@ -135,9 +135,9 @@ fetch("https://api.talo.com.ar/payments/aaa111683cb04ec4af867",
 
 | Atributo  | Tipo | Descripción |
 | :-------: | :--: | :---------: | 
-| message | string | Mensaje de respuesta |
-| error | bool | Indica si hubo error o no |
-| data | object | Objeto con la información del pago |
+| message | string | Mensaje de respuesta. |
+| error | bool | Indica si hubo error o no. |
+| data | object | Objeto con la información del pago. |
 
 
 Ejemplo
