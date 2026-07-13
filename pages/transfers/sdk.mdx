@@ -1,0 +1,200 @@
+---
+title: "SDK TypeScript"
+description: "Integra Talo desde TypeScript con el SDK oficial."
+---
+
+import { Callout, Steps, Tabs, Tab } from "nextra-theme-docs"
+
+# SDK TypeScript
+
+Usa el SDK oficial si tu backend está escrito en TypeScript o JavaScript. El paquete expone un cliente tipado para crear pagos, consultar pagos, procesar devoluciones, usar flujos de partners y manejar webhooks.
+
+<Callout type="info">
+	El SDK usa la misma API REST documentada en esta sección. Si necesitás integrar desde otro lenguaje, usa directamente la [Payments API](/transfers/payments-api), [Customers API](/transfers/customers-api) y [Webhooks](/transfers/webhooks).
+</Callout>
+
+## Instalación
+
+<Tabs items={["npm", "bun"]}>
+  <Tab label="npm">
+
+```bash
+npm install talo-pay
+```
+
+  </Tab>
+  <Tab label="bun">
+
+```bash
+bun add talo-pay
+```
+
+  </Tab>
+</Tabs>
+
+## Credenciales
+
+Configurá estas variables de entorno en tu backend:
+
+```bash
+TALO_CLIENT_ID="..."
+TALO_CLIENT_SECRET="..."
+TALO_USER_ID="..."
+```
+
+<Callout type="warning">
+	No uses `clientSecret` en código frontend. El SDK debe ejecutarse en tu servidor, API route, worker o función serverless.
+</Callout>
+
+## Crear cliente
+
+```ts
+import { TaloClient } from "talo-pay"
+
+const talo = new TaloClient({
+	clientId: process.env.TALO_CLIENT_ID!,
+	clientSecret: process.env.TALO_CLIENT_SECRET!,
+	userId: process.env.TALO_USER_ID!,
+	environment: "sandbox", // "sandbox" | "production"
+})
+```
+
+El SDK obtiene tokens automáticamente con tus credenciales, los cachea en memoria, los renueva antes del vencimiento y reintenta una vez si la API responde `401`.
+
+| Ambiente     | URL base                         |
+| ------------ | -------------------------------- |
+| `sandbox`    | `https://sandbox-api.talo.com.ar` |
+| `production` | `https://api.talo.com.ar`         |
+
+Si pasás `baseUrl`, ese valor reemplaza el ambiente configurado.
+
+## Crear un pago
+
+```ts
+const payment = await talo.payments.create({
+	user_id: process.env.TALO_USER_ID!,
+	price: { amount: 30000, currency: "ARS" },
+	payment_options: ["transfer"],
+	external_id: "ORDER_123",
+	webhook_url: "https://tu-sitio.com/webhooks/talo",
+	motive: "Orden #123",
+	client_data: {
+		first_name: "Juan",
+		last_name: "Perez",
+		email: "juan@example.com",
+		dni: "12345678",
+	},
+})
+
+console.log(payment.id, payment.payment_status, payment.payment_url)
+```
+
+Después de crear el pago, mostrale al comprador el `payment_url` o los datos de transferencia incluidos en la respuesta. Para detalles de campos, estados y respuestas, revisá [Payments API](/transfers/payments-api).
+
+## Webhooks en Next.js App Router
+
+```ts
+import { createWebhookHandler } from "talo-pay"
+
+const handler = createWebhookHandler(
+	{
+		clientId: process.env.TALO_CLIENT_ID!,
+		clientSecret: process.env.TALO_CLIENT_SECRET!,
+		userId: process.env.TALO_USER_ID!,
+		environment: "sandbox",
+	},
+	{
+		onPaymentUpdated: async ({ event, payment }) => {
+			console.log(event.paymentId, event.externalId, payment.payment_status)
+			// Actualizá tu orden usando payment.payment_status como fuente de verdad.
+		},
+	}
+)
+
+export async function POST(request: Request): Promise<Response> {
+	return handler(request)
+}
+```
+
+El handler valida el evento recibido y consulta el pago actual en Talo. Persistí el estado obtenido desde Talo en tu base de datos.
+
+## Devoluciones
+
+```ts
+const refund = await talo.refunds.create("VAR-123", {
+	refund_type: "PARTIAL", // "PARTIAL" | "FULL"
+	amount: "500.00",
+	currency: "ARS",
+	blame: {
+		team_id: "soporte",
+		mail: "soporte@tu-sitio.com",
+	},
+	user_id: process.env.TALO_USER_ID!,
+})
+
+console.log(refund.refund_id, refund.status)
+```
+
+Para devoluciones completas, usá `refund_type: "FULL"` y omití `amount` y `currency`. Ver más en [Devoluciones](/transfers/refunds).
+
+## Flujos de partners
+
+```ts
+const authorizationUrl = talo.partners.getAuthorizationUrl("partner_id", {
+	referredUserId: "external_user_123",
+})
+
+const exchange = await talo.partners.exchangeToken({
+	code: "code_from_redirect",
+	client_id: process.env.TALO_PARTNER_ID!,
+	client_secret: process.env.TALO_PARTNER_SECRET!,
+})
+
+const account = await talo.partners.getAccount(exchange.user_id)
+
+await talo.partners.updateAccount(exchange.user_id, {
+	transfer_tolerance: 15,
+})
+```
+
+Usá este flujo si integrás Talo en nombre de comercios conectados. Ver más en [Para Partners](/partners/introduction).
+
+## Recursos disponibles
+
+- `talo.payments.create(...)`
+- `talo.payments.get(...)`
+- `talo.payments.updateMetadata(...)`
+- `talo.customers.create(...)`
+- `talo.customers.get(...)`
+- `talo.customers.getTransaction(...)`
+- `talo.partners.getAuthorizationUrl(...)`
+- `talo.partners.exchangeToken(...)`
+- `talo.partners.getAccount(...)`
+- `talo.partners.updateAccount(...)`
+- `talo.refunds.create(...)`
+- `talo.sandbox.simulateCvuTransfer(...)`
+- `createWebhookHandler(...)`
+
+<Callout type="tip">
+	Repositorio público: [github.com/talo-pay/talo-sdk](https://github.com/talo-pay/talo-sdk).
+</Callout>
+
+## Flujo recomendado
+
+<Steps>
+### Instalá
+
+Agregá `talo-pay` en tu backend TypeScript.
+
+### Probá en sandbox
+
+Creá el cliente con `environment: "sandbox"` y generá pagos de prueba.
+
+### Recibí webhooks
+
+Implementá el handler, consultá el estado actual y actualizá tu orden.
+
+### Pasá a producción
+
+Cambiá a `environment: "production"` y usá credenciales productivas.
+</Steps>

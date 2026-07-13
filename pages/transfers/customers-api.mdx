@@ -1,0 +1,258 @@
+---
+title: "Customers API (Clientes fijos)"
+description: "Asigna un CVU/alias permanente a cada cliente y gestiona cobranzas recurrentes."
+---
+
+import { Callout, Tabs, Tab } from "nextra-theme-docs"
+
+# Customers API
+
+Crea un **cliente** con su propio CVU/alias para que pueda pagarte las veces que quiera sin generar nuevos datos de pago.
+
+---
+
+## Crear un cliente
+
+### Prod
+
+```http
+POST https://api.talo.com.ar/customers/
+```
+
+### Sandbox
+
+```http
+POST https://sandbox-api.talo.com.ar/customers/
+```
+
+### Campos requeridos
+
+| Campo         | Tipo     | Descripción                              |
+| ------------- | -------- | ---------------------------------------- |
+| `user_id`     | `string` | Tu `user_id` de Talo                     |
+| `alias`       | `string` | Sufijo de alias deseado (ej. `abcdabcd`) |
+| `customer_id` | `string` | ID único interno (DNI/CUIT o UUID)       |
+| `name`        | `string` | Nombre del cliente                       |
+
+### Campos opcionales
+
+| Campo           | Tipo     | Descripción                              |
+| --------------- | -------- | ---------------------------------------- |
+| `contact`       | `object` | Objeto de contacto (puede ser `null`)    |
+| `contact.email` | `string` | E-mail del cliente (requerido si se envía `contact`) |
+| `webhook_url`   | `string` | URL donde Talo notificará cada pago (debe ser URL válida) |
+
+<Callout type="info">
+	El campo `contact` es nullable. Si se envía, el campo `email` dentro de `contact` es requerido.
+</Callout>
+
+---
+
+## Ejemplo de solicitud
+
+<Tabs items={['cURL', 'Python']}>
+  <Tab label="cURL">
+
+```bash
+curl -X POST https://sandbox-api.talo.com.ar/customers/ \
+  -H "Authorization: Bearer $TALO_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "user_id": "f61876b0-10a5-4e39-8e2c-17343b3fa1b6",
+    "alias": "abcdabcd",
+    "customer_id": "123456789",
+    "name": "Carla Perez",
+    "contact": { "email": "carlaperez@gmail.com" },
+    "webhook_url": "https://tu-sitio.com/webhooks/talo"
+  }'
+```
+
+  </Tab>
+  <Tab label="Python">
+
+```py
+import requests, os, json
+
+data = {
+  "user_id": os.getenv("USER_ID"),
+  "alias": "abcdabcd",
+  "customer_id": "123456789",
+  "name": "Carla Perez",
+  "contact": {"email": "carlaperez@gmail.com"},
+  "webhook_url": "https://tu-sitio.com/webhooks/talo"
+}
+resp = requests.post(
+    'https://sandbox-api.talo.com.ar/customers',
+    headers={
+        'Authorization': f'Bearer {os.getenv("TALO_TOKEN")}',
+        'Content-Type': 'application/json'
+    },
+    data=json.dumps(data)
+)
+print(resp.json())
+```
+
+  </Tab>
+</Tabs>
+
+---
+
+## Respuesta
+
+```json5
+{
+	data: {
+		customer_id: "123456789",
+		bank_info: {
+			cvu: "0000630500008064475741",
+			alias: "bami.abcdabcd",
+		},
+		balance: 0,
+		creation_timestamp: "2025-02-18T19:57:26.674Z",
+	},
+}
+```
+
+El cliente utiliza **siempre** ese CVU/alias. Cada vez que transfiera, Talo enviará un webhook.
+
+---
+
+## Modificar alias de un cliente
+
+```http
+PATCH https://sandbox-api.talo.com.ar/customers/{customer_id}/alias
+```
+
+### Body
+
+| Campo            | Tipo      | Requerido | Descripción |
+| ---------------- | --------- | --------- | ----------- |
+| `alias`          | `string`  | Sí        | Nuevo sufijo de alias deseado |
+| `create_new_cvu` | `boolean` | Sí        | Si es `true`, Talo asigna un CVU nuevo y libera el anterior. Si es `false`, mantiene el CVU actual y cambia solo el alias. |
+
+<Callout type="warning">
+	Si `create_new_cvu` es `false`, el cambio de alias solo puede hacerse cuando la creación o última modificación del CVU ocurrió hace más de un día.
+</Callout>
+
+### Ejemplo
+
+```bash
+curl -X PATCH https://sandbox-api.talo.com.ar/customers/123456789/alias \
+  -H "Authorization: Bearer $TALO_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "alias": "nuevoalias",
+    "create_new_cvu": false
+  }'
+```
+
+### Respuesta
+
+```json5
+{
+	data: {
+		customer_id: "123456789",
+		alias: "nuevoalias",
+		bank_info: {
+			cvu: "0000630500008064475741",
+			alias: "bami.nuevoalias",
+		},
+		last_modified_timestamp: "2026-04-27T15:30:00.000Z",
+	},
+}
+```
+
+Si `create_new_cvu` es `true`, `bank_info.cvu` cambia en la respuesta. Si es `false`, `bank_info.cvu` se mantiene y solo cambia `bank_info.alias`.
+
+---
+
+## Listar clientes
+
+```http
+GET https://sandbox-api.talo.com.ar/customers/?user_id={user_id}
+```
+
+### Query parameters
+
+| Campo     | Tipo     | Requerido | Descripción                              |
+| --------- | -------- | --------- | ---------------------------------------- |
+| `user_id` | `string` | Sí        | ID del usuario cuyos clientes se quieren consultar |
+
+### Ejemplo
+
+```bash
+curl -H "Authorization: Bearer $TALO_TOKEN" \
+  "https://sandbox-api.talo.com.ar/customers/?user_id=f61876b0-10a5-4e39-8e2c-17343b3fa1b6"
+```
+
+### Respuesta
+
+```json
+{
+	"message": "ok",
+	"error": false,
+	"code": 200,
+	"data": {
+		"customers": [
+			{
+				"customer_id": "123456789",
+				"name": "Carla Perez",
+				"bank_info": {
+					"cvu": "0000630500008064475741",
+					"alias": "bami.abcdabcd"
+				},
+				"balance": 15000,
+				"creation_timestamp": "2025-02-18T19:57:26.674Z"
+			}
+		]
+	}
+}
+```
+
+---
+
+## Consultar transacción de un cliente
+
+```http
+GET https://sandbox-api.talo.com.ar/customers/{customer_id}/transactions/{transaction_id}
+```
+
+### Parámetros del path
+
+| Campo            | Tipo     | Descripción                      |
+| ---------------- | -------- | -------------------------------- |
+| `customer_id`    | `string` | ID del cliente                   |
+| `transaction_id` | `string` | ID de la transacción a consultar |
+
+### Ejemplo
+
+```bash
+curl -H "Authorization: Bearer $TALO_TOKEN" \
+  https://sandbox-api.talo.com.ar/customers/123456789/transactions/1b5a952a-8a79-4003-b06a-e4043d453456
+```
+
+---
+
+## Simular pago en sandbox
+
+```bash
+curl -X POST \
+  "https://sandbox-api.talo.com.ar/cvu/0000630500008064475741/faucet" \
+  -H "Authorization: Bearer $TALO_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{ "amount": 15000 }'
+```
+
+---
+
+## Casos de uso frecuentes
+
+| Escenario                  | Cómo funciona                                                                                          |
+| -------------------------- | ------------------------------------------------------------------------------------------------------ |
+| **Suscripción mensual**    | El cliente transfiere cada mes al mismo alias. Tu sistema detecta el webhook y renueva su plan.        |
+| **Cuentas por cobrar B2B** | Asigna alias único por proveedor. Simplifica la conciliación de múltiples facturas a lo largo del mes. |
+| **Préstamo/cuotas**        | El deudor paga cuando quiera; Talo actualiza el balance y envía webhook.                               |
+
+---
+
+> Necesitas saber cómo escuchar notificaciones? Ve a **[Webhooks →](/transfers/webhooks)**

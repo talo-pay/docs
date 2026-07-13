@@ -1,0 +1,203 @@
+# Activación y configuración de cuentas
+
+Una vez que ya has dado de alta a tu cliente en Talo y tenés un token de acceso. Talo enviará una notificación a tu url de webhook para avisarte cuando la cuenta haya sido activada.
+
+La activación de la cuenta puede demorar hasta 36hs.
+
+## Payload de la notificación
+
+```json
+{
+	"message": "account_activated",
+	"user_id": "507d3c2ret-36g9-6f22-99ab-427d0sdfsdfff21"
+}
+```
+
+El campo `user_id` es el id del usuario en Talo. Con este id podrás consultar el estado de la cuenta de tu usuario como se indica en la sección siguiente.
+
+## Consulta de estado de la cuenta
+
+Para validar que la cuenta del usuario haya sido activada, deberás realizar una consulta a la API de Talo.
+
+```
+GET https://api.talo.com.ar/users/{user_id}/account
+```
+
+import { Callout } from "nextra-theme-docs"
+
+<Callout type="info">
+	Este endpoint requiere un token de partner (`PAR-`). Si usás un token de usuario normal, recibirás un error 422.
+</Callout>
+
+### Response
+
+```json
+{
+	"status": "ok",
+	"error": false,
+	"data": {
+		"account_status": "ACTIVE",
+		"alias_prefix": "myapp",
+		"cancellation_period": 30,
+		"cancellation_period_minutes": 10,
+		"transfer_tolerance": 10,
+		"payout_schedule": {
+			"address": "my.withdraw.alias",
+			"frequency": "daily"
+		},
+		"user_id": "507d3c2ret-36g6-6b22-99ab-427d0sdfsdfff21",
+		"partner_config": {
+			"commission": 2,
+			"partner_id": "75b4bf61-afac-453f-939e-181a2c1de579",
+			"partner_name": "La mejor app",
+			"partner_slug": "la_mejor_app"
+		}
+	}
+}
+```
+
+El campo `account_status` puede ser
+
+- `ACTIVE` si la cuenta está activa y lista para operar
+- `PENDING` si la cuenta está pendiente de activación
+- `REJECTED` si la cuenta fue rechazada por el KYC
+- `SUSPENDED` si la cuenta está suspendida
+
+## Configuración de la cuenta
+
+Para modificar la configuración de la cuenta, no es necesario que la cuenta esté activa.
+
+### Request
+
+`PATCH https://api.talo.com.ar/users/{user_id}`
+
+```json
+{
+	"alias_prefix": "myapp",
+	"cancellation_period": 30,
+	"cancellation_period_minutes": 10,
+	"automatic_cancellation": true,
+	"payout_schedule": {
+		"address": "my.withdraw.alias",
+		"frequency": "daily"
+	}
+}
+```
+
+### Parámetros de configuración
+
+| Campo                         | Tipo    | Requerido | Descripción                                | Valores permitidos                                               | Limitaciones                                                         |
+| ----------------------------- | ------- | --------- | ------------------------------------------ | ---------------------------------------------------------------- | -------------------------------------------------------------------- |
+| `alias_prefix`                | string  | No        | Prefijo para generar alias de CVU          | Cualquier string válido                                          | Máximo 8 caracteres, solo letras minúsculas, números y guiones bajos |
+| `cancellation_period`         | integer | No        | Período de cancelación de pagos en horas   | 1-200                                                            | Valor entre 1 y 200 horas                                            |
+| `cancellation_period_minutes` | integer | No        | Período de cancelación de pagos en minutos | 5-20160                                                          | Si está presente, tiene prioridad sobre `cancellation_period`        |
+| `automatic_cancellation`      | boolean | No        | Habilitar cancelación automática de pagos  | `true`, `false`                                                  |                                                                      |
+**Notas:**
+
+- Todos los campos son opcionales. Solo se actualizarán los campos que se envíen en la request.
+- El `alias_prefix` debe ser único por usuario.
+- El `cancellation_period` y `cancellation_period_minutes` aplican solo al `paymentsAPI`.
+- Si enviás `cancellation_period_minutes`, ese valor se usará con prioridad sobre `cancellation_period`.
+- En el caso de usar `customersAPI` el `alias_prefix` puede ser más largo. Tener en cuenta que la combinación de `alias_prefix` y el `alias` que se asigna a cada `customer` debe ser única y no puede exceder los 20 caracteres.
+
+## Retiros automáticos (Payout Schedules)
+
+Los partners pueden configurar retiros automáticos para sus usuarios a través de los endpoints de schedules. Solo se permite crear schedules de tipo `payout`.
+
+### Crear un payout schedule
+
+`POST https://api.talo.com.ar/transactions/schedules`
+
+```json
+{
+	"schedule_type": "payout",
+	"frequency": "daily",
+	"payload": {
+		"address": "my.withdraw.alias"
+	}
+}
+```
+
+| Campo               | Tipo   | Requerido | Descripción                                | Valores permitidos                       |
+| ------------------- | ------ | --------- | ------------------------------------------ | ---------------------------------------- |
+| `schedule_type`     | string | Sí        | Tipo de schedule                           | `payout`                                 |
+| `frequency`         | string | Sí        | Frecuencia de retiros automáticos          | `bi_daily`, `daily`, `weekly`, `monthly` |
+| `payload.address`   | string | Sí        | CVU/CBU/alias para retiros                 | La titularidad debe coincidir con la del usuario |
+
+#### Response
+
+```json
+{
+	"status": "ok",
+	"error": false,
+	"data": {
+		"schedule_id": "01HXYZ...",
+		"schedule_type": "payout",
+		"frequency": "daily",
+		"schedule_status": "active",
+		"next_run_date": "2024-01-15T00:00:00.000Z",
+		"creation_timestamp": "2024-01-15T00:00:00.000Z",
+		"user_id": "507d3c2ret-36g6-6b22-99ab-427d0sdfsdfff21",
+		"payload": {
+			"address": "my.withdraw.alias"
+		}
+	}
+}
+```
+
+### Listar payout schedules
+
+`GET https://api.talo.com.ar/transactions/schedules`
+
+Devuelve únicamente los payout schedules creados por el partner para el usuario autenticado.
+
+#### Response
+
+```json
+{
+	"status": "ok",
+	"error": false,
+	"data": {
+		"schedules": [
+			{
+				"schedule_id": "01HXYZ...",
+				"schedule_type": "payout",
+				"frequency": "daily",
+				"schedule_status": "active",
+				"next_run_date": "2024-01-15T00:00:00.000Z",
+				"creation_timestamp": "2024-01-15T00:00:00.000Z",
+				"user_id": "507d3c2ret-36g6-6b22-99ab-427d0sdfsdfff21",
+				"payload": {
+					"address": "my.withdraw.alias"
+				}
+			}
+		]
+	}
+}
+```
+
+### Modificar un payout schedule
+
+`PATCH https://api.talo.com.ar/transactions/schedules/{schedule_id}`
+
+Permite modificar la frecuencia, dirección de retiro o estado de un payout schedule creado por el partner.
+
+```json
+{
+	"frequency": "weekly",
+	"address": "otro.alias",
+	"schedule_status": "inactive"
+}
+```
+
+| Campo             | Tipo   | Requerido | Descripción                       | Valores permitidos                       |
+| ----------------- | ------ | --------- | --------------------------------- | ---------------------------------------- |
+| `frequency`       | string | No        | Nueva frecuencia de retiros       | `bi_daily`, `daily`, `weekly`, `monthly` |
+| `address`         | string | No        | Nuevo CVU/CBU/alias para retiros  | La titularidad debe coincidir con la del usuario |
+| `schedule_status` | string | No        | Activar o desactivar el schedule  | `active`, `inactive`                     |
+
+Todos los campos son opcionales. Solo se actualizarán los campos que se envíen en la request.
+
+<Callout type="warning">
+	Solo podés modificar payout schedules que hayas creado vos como partner. Intentar modificar un schedule creado por el usuario o por otro partner devolverá un error 403.
+</Callout>

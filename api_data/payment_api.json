@@ -87,13 +87,6 @@
 						},
 						"quotes": [
 							{
-								"amount": "4037655403061822533",
-								"currency": "BUSD",
-								"amountReadable": 4.037655403061822,
-								"address": "0x92f0852Cf8281C811F4Fea547B26c3b7E58d5D3C",
-								"network": "BSC"
-							},
-							{
 								"amount": "14314586772925146",
 								"currency": "BNB",
 								"amountReadable": 0.014314586772925146,
@@ -112,8 +105,8 @@
 						"payment_status": "PENDING",
 						"user_id": "6851ea13-aaf4-4410-ab7c-633619044246",
 						"payment_url": "https://sandbox.talo.com.ar/payments/01GDZT9T506HDSFAQ9X25BAJJG",
-						"webhook_url": "http://localhost:3000/dashboard",
-						"redirect_url": "http://localhost:3000/dashboard",
+						"webhook_url": "http://localhost:3000/webhook",
+						"redirect_url": "http://localhost:3000/redirect",
 						"external_id": "FDF_106503",
 						"id": "01GDZT9T506HDSFAQ9X25BAJJG",
 						"price": {
@@ -167,13 +160,6 @@
 						},
 						"quotes": [
 							{
-								"amount": "18364008254428209991",
-								"currency": "BUSD",
-								"amountReadable": 18.36400825442821,
-								"address": "0x774Cec9aBDBb4a05c97f45A3Cf623d2370C47375",
-								"network": "BSC"
-							},
-							{
 								"amount": "62240914411206852",
 								"currency": "BNB",
 								"amountReadable": 0.06224091441120685,
@@ -206,8 +192,8 @@
 						"payment_status": "UNDERPAID",
 						"user_id": "exaask223332",
 						"payment_url": "https://d3e9ln1d0tu6ol.cloudfront.net/payments/01GCRAWMEGZWWWHY64XG9NMJ51",
-						"webhook_url": "http://localhost:3000/dashboard",
-						"redirect_url": "http://localhost:3000/dashboard",
+						"webhook_url": "http://localhost:3000/webhook",
+						"redirect_url": "http://localhost:3000/redirect",
 						"external_id": "FDF_106503",
 						"id": "aaa111683cb04ec4af867",
 						"price": {

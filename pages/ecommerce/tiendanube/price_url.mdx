@@ -1,0 +1,28 @@
+import { Callout } from "nextra/components"
+
+# URL con precio precargado para Tiendanube
+
+Para quienes tengan una integración con Tiendanube más personalizada, proveemos una forma de precargar el precio del pago en la URL. El objetivo es mejorar la experiencia del cliente.
+
+## ¿Cómo funciona?
+
+Deberás obtener la URL de Tiendanube desde el panel de Talo como se indica en los [pasos de integración](/ecommerce/tiendanube/introduction.mdx).
+Para agregar la información del precio deberás agregar a la URL que obtuviste desde el tablero dos parámetros:
+
+- `price`: el monto a pagar
+- `currency`: la moneda en la que se indica el monto
+
+Por ejemplo, si el precio es de 1000.75 ARS, la URL final sería:
+
+```
+https://talo.com.ar/cryptonube/ajskdfkjldjnbsdkf?price=1000.75&currency=ARS
+```
+
+Compartiendo esta URL con el cliente que realiza el pago, él no tiene que ingresar el monto que debe pagar, haciendo que el flujo sea más rápido y cómodo.
+
+<Callout type="warning" emoji="⚠️">
+	Esta es una herramienta para quienes tengan productos con el mismo precio o
+	tengan una implementación más personalizada de Tiendanube.
+</Callout>
+
+Si te interesa saber cómo implementar este tipo de URL, podes escribirnos por [nuestro whatsapp](https://wa.me/message/NLA2DUMYC5E3E1).

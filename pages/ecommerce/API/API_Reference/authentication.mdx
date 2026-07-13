@@ -1,0 +1,97 @@
+import { Tab, Tabs } from "nextra-theme-docs"
+
+# Autenticación con la API de Talo
+
+La autenticación es un componente crítico de la seguridad en cualquier API REST. En Talo, utilizamos un proceso de autenticación basado en tokens para asegurar que sólo los clientes autorizados tengan acceso a nuestra API.
+
+## Generación de Credenciales
+
+Las credenciales se generan a través de _Dashboard > Usuario > Credenciales_. Consisten en un `client_id` y un `client_secret`, que se utilizan para generar un token de acceso temporal.
+
+## Generación de Tokens de Autenticación
+
+Para generar un token de autenticación, realiza una solicitud POST a [`/users/:user_id/tokens`](./users_api), incluyendo el `client_id` y `client_secret` en el cuerpo de la solicitud.
+
+**Ejemplo:**
+
+**Request:**
+
+<Tabs items={['Curl', 'Node.js', 'Python', 'PHP']}>
+
+  <Tab>
+  ```bash copy
+  curl -X POST https://api.talo.com.ar/users/:user_id/tokens \
+  -H "Content-Type: application/json" \
+  -d '{"client_id": "A13NDKD3534JEM", "client_secret": "ma43rngw485u5p9kjh2hsfd9g8s0323j4kjlkdjsfda9"}'
+  ```
+</Tab>
+<Tab>
+```javascript copy
+import axios from "axios"
+
+const res = await axios.post('https://api.talo.com.ar/users/:user_id/tokens', {
+client_id: 'A13NDKD3534JEM',
+client_secret: 'ma43rngw485u5p9kjh2hsfd9g8s0323j4kjlkdjsfda9'
+})
+
+````
+</Tab>
+<Tab>
+```python copy
+import requests
+
+url = 'https://api.talo.com.ar/users/:user_id/tokens'
+payload = {
+'client_id': 'A13NDKD3534JEM',
+'client_secret': 'ma43rngw485u5p9kjh2hsfd9g8s0323j4kjlkdjsfda9'
+}
+response = requests.post(url, json=payload)
+
+print(response.json())
+
+````
+
+</Tab>
+<Tab>
+```php copy
+$url = 'https://api.talo.com.ar/users/:user_id/tokens';
+$data = array('client_id' => 'A13NDKD3534JEM', 'client_secret' => 'ma43rngw485u5p9kjh2hsfd9g8s0323j4kjlkdjsfda9');
+
+$options = array(
+  'http' => array(
+    'header'  => "Content-type: application/x-www-form-urlencoded\r\n",
+    'method'  => 'POST',
+    'content' => http_build_query($data)
+)
+);
+$context  = stream_context_create($options);
+$result = file_get_contents($url, false, $context);
+
+var_dump($result);
+
+````
+</Tab>
+</Tabs>
+**Response:**
+
+```bash Copy
+{
+"message": "ok",
+"error": false,
+"data": {
+  "token": "TL-eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c"
+}
+}
+````
+
+## Uso de Tokens de Autenticación
+
+Una vez que tienes un token de autenticación, debes incluirlo en el encabezado Authorization de todas las solicitudes a nuestra API, utilizando el esquema "Bearer".
+
+**Ejemplo:**
+
+Si tu token es "TL-qrdf892ljsdf", entonces tu encabezado de autorización debería verse así:
+
+```bash copy
+Authorization: Bearer TL-qrdf892ljsdf
+```

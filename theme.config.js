@@ -1,9 +1,16 @@
 import React from "react"
-import TaloLogo from "./components/TaloLogo"
+import TaloLogo from "./components/logo/TaloLogo"
 // theme.config.js
 export default {
 	projectLink: "https://github.com/talo-pay/docs", // GitHub link in the navbar
+	project: {
+		link: "https://talo.com.ar",
+	},
+	github: "https://github.com/talo-pay/docs",
 	docsRepositoryBase: "https://github.com/talo-pay/docs", // base URL for the docs repository
+	editLink: {
+		component: null,
+	  },
 	titleSuffix: "Talo Docs",
 	nextLinks: true,
 	prevLinks: true,
@@ -26,7 +33,7 @@ export default {
 			<meta name="viewport" content="width=device-width, initial-scale=1.0" />
 			<meta
 				name="description"
-				content="Documentation for talo cryptocurrencies integrations"
+				content="Documentación técnica de Talo Pay: transferencias bancarias, crypto, Pix e integraciones con Tiendanube, Shopify y WooCommerce."
 			/>
 			<meta name="og:title" content="Talo Docs" />
 		</>

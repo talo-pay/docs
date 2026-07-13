@@ -1,0 +1,23 @@
+# Errores
+
+Los errores son una parte inevitable de cualquier sistema, y la API de Talo no es una excepción. Para ayudar a los usuarios a entender y manejar los errores de manera efectiva, Talo adopta los estándares HTTP para los códigos de respuesta en las solicitudes a la API.
+
+Estos códigos de respuesta se dividen en varias categorías, cada una de las cuales indica un estado específico de la solicitud:
+
+- `2xx`: La solicitud se procesó correctamente
+- `4xx`: Hay un error en la información proporcionada en la solicitud
+- `5xx`: Hay un problema en los servidores de Talo
+
+Para mayor claridad, aquí se presenta un resumen de los códigos de estado HTTP más comúnmente utilizados por la API de Talo:
+
+| Código |        Mensaje        | Descripción                                                                |
+| :----: | :-------------------: | :------------------------------------------------------------------------- |
+|  200   |          OK           | La solicitud ha sido procesada correctamente                               |
+|  400   |      Bad Request      | La solicitud contiene un parámetro o encabezado inválido o faltante        |
+|  401   |     Unauthorized      | El token de autenticación es inválido o está ausente                       |
+|  403   |       Forbidden       | El usuario autenticado no tiene permiso para acceder al recurso solicitado |
+|  404   |       Not Found       | El recurso solicitado no existe                                            |
+|  422   |   Validation Error    | Un parámetro necesario para la solicitud es inválido o está ausente        |
+|  500   | Internal Server Error | Ha ocurrido un error inesperado en los servidores de Talo                  |
+
+Talo recomienda encarecidamente a los usuarios de la API que manejen adecuadamente estos códigos de error en sus implementaciones para garantizar una experiencia de usuario fluida.

@@ -1,0 +1,128 @@
+# Crear reembolso para un pago
+
+**POST** `/payments/{payment_id}/refunds`
+
+Permite crear un reembolso (total o parcial) sobre un pago existente. El reembolso puede ser solicitado por un usuario autorizado y requiere especificar el tipo de reembolso, el responsable (blame) y, en el caso de reembolsos parciales, el monto.
+
+---
+
+## Parámetros de URL
+
+| Nombre       | Tipo   | Requerido | Descripción              |
+| ------------ | ------ | --------- | ------------------------ |
+| `payment_id` | string | Sí        | ID del pago a reembolsar |
+
+## Cuerpo de la solicitud (Request Body)
+
+El cuerpo debe ser un objeto JSON que discrimina por el campo `refund_type`:
+
+### Reembolso Total
+
+```json
+{
+	"refund_type": "FULL",
+	"blame": {
+		"team_id": "string",
+		"mail": "string"
+	},
+	"user_id": "string"
+}
+```
+
+### Reembolso Parcial
+
+```json
+{
+	"refund_type": "PARTIAL",
+	"amount": "string",
+	"currency": "ARS",
+	"blame": {
+		"team_id": "string",
+		"mail": "string"
+	},
+	"user_id": "string"
+}
+```
+
+- **refund_type**: `"FULL"` para reembolso total, `"PARTIAL"` para parcial.
+- **amount**: Solo requerido para reembolsos parciales. Monto a reembolsar (string, ej: `"1000.00"`).
+- **currency**: Solo `"ARS"` soportado actualmente.
+- **blame**: Información del equipo/responsable que solicita el reembolso.
+- **user_id**: ID del usuario que solicita el reembolso.
+
+---
+
+## Respuestas
+
+### 200 OK
+
+```json
+{
+	"status": "ok",
+	"data": {
+		"refund_status": "PENDING",
+		"refund_type": "PARTIAL",
+		"amount": "500.00",
+		"amount_with_tax": "530.00",
+		"tax_amount": "30.00",
+		"currency": "ARS",
+		"blame": {
+			"team_id": "soporte",
+			"mail": "soporte@talo.com.ar"
+		},
+		"creation_timestamp": "2024-06-07T12:34:56Z",
+		"transaction_ids": []
+	},
+	"code": 200
+}
+```
+
+### Estados del reembolso (`refund_status`)
+
+| Estado    | Descripción                          |
+| --------- | ------------------------------------ |
+| `PENDING` | El reembolso está siendo procesado   |
+| `SUCCESS` | El reembolso se completó con éxito   |
+| `FAILED`  | El reembolso falló                   |
+
+### 4XX/5XX Error
+
+```json
+{
+	"status": "error",
+	"message": "Descripción del error",
+	"code": 400
+}
+```
+
+---
+
+## Ejemplo de uso
+
+### Solicitud
+
+```http
+POST /payments/123456/refunds
+Content-Type: application/json
+Authorization: Bearer {access_token}
+
+{
+  "refund_type": "PARTIAL",
+  "amount": "500.00",
+  "currency": "ARS",
+  "blame": {
+    "team_id": "soporte",
+    "mail": "soporte@talo.com.ar"
+  },
+  "user_id": "usuario_789"
+}
+```
+
+---
+
+## Notas
+
+- Solo usuarios autenticados y autorizados pueden crear reembolsos.
+- El campo `blame` es obligatorio y debe identificar al responsable del reembolso.
+- El endpoint valida que el monto para reembolsos parciales no exceda el monto original del pago.
+- Actualmente solo se soporta la moneda ARS.

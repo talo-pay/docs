@@ -1,0 +1,128 @@
+import { Tab, Tabs } from "nextra-theme-docs"
+
+# Users API
+
+Esta API proporciona endpoints para administrar usuarios. La versión actual de la API es v1.0.0.
+
+## Endpoints
+
+### POST /users/:id/tokens
+
+Este endpoint se usa para generar tokens de autenticación para un usuario específico.
+
+### Request
+
+#### Parámetros de ruta (URL parameters)
+
+| Nombre | Tipo   | Descripción                | Obligatorio | Ejemplo          |
+| ------ | ------ | -------------------------- | ----------- | ---------------- |
+| id     | string | Identificador del usuario. | Sí          | `dddd1234567890` |
+
+#### Request body
+
+| Nombre        | Tipo   | Descripción                                 | Obligatorio | Ejemplo              |
+| ------------- | ------ | ------------------------------------------- | ----------- | -------------------- |
+| client_id     | string | Identificador de la credencial del usuario. | Sí          | `aaaaa1234567890`    |
+| client_secret | string | Clave secreta de la credencial del usuario. | Sí          | `bbba1234567890abbb` |
+
+#### Response
+
+La respuesta incluye el siguiente formato:
+
+| Campo   | Tipo   | Descripción                                                       |
+| ------- | ------ | ----------------------------------------------------------------- |
+| message | string | Mensaje de respuesta.                                             |
+| error   | bool   | Indica si hubo un error.                                          |
+| data    | object | Objeto con la información del token de autenticación del usuario. |
+
+#### Ejemplo de uso
+
+<Tabs items={['Curl', 'Node.js', 'Python', 'PHP']}>
+<Tab>
+```bash copy
+#### curl
+curl --location --request POST 'https://api.talo.com.ar/users/dddd1234567890/tokens' \
+--header 'Content-Type: application/json' \
+--data-raw '{
+    "client_id": "aaaaa1234567890",
+    "client_secret": "bbba1234567890abbb"
+}'
+```
+
+</Tab>
+<Tab>
+```javascript copy
+// Node.js (Axios)
+import axios from "axios"
+
+const res = await axios.post('https://api.talo.com.ar/users/dddd1234567890/tokens', {
+client_id: 'aaaaa1234567890',
+client_secret: 'bbba1234567890abbb'
+})
+console.log(res.data)
+
+````
+</Tab>
+
+<Tab>
+```python copy
+#### Python (Requests)
+import requests
+import json
+
+url = 'https://api.talo.com.ar/users/dddd1234567890/tokens'
+
+payload = {
+    "client_id": "aaaaa1234567890",
+    "client_secret": "bbba1234567890abbb"
+}
+
+headers = {
+    'Content-Type': 'application/json'
+}
+
+response = requests.post(url, data=json.dumps(payload), headers=headers)
+
+if response.status_code == 200:
+    print(response.json())
+else:
+    print("Error:", response.status_code)
+````
+
+</Tab>
+
+<Tab>
+```php copy
+#### PHP (cURL)
+<?php
+
+$url = "https://api.talo.com.ar/users/dddd1234567890/tokens";
+
+$ch = curl_init($url);
+
+$data = array(
+'client_id' => 'aaaaa1234567890',
+'client_secret' => 'bbba1234567890abbb'
+);
+
+$payload = json_encode($data);
+
+curl_setopt($ch, CURLOPT_POSTFIELDS, $payload);
+curl_setopt($ch, CURLOPT_HTTPHEADER, array('Content-Type:application/json'));
+
+curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+$result = curl_exec($ch);
+
+if (curl_errno($ch)) {
+    echo 'Error:' . curl_error($ch);
+} else {
+echo $result;
+}
+
+curl_close($ch);
+?>
+
+```
+</Tab>
+</Tabs>
+```

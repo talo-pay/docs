@@ -1,0 +1,9 @@
+{
+	"index": "Introducción",
+	"sdk": "SDK TypeScript",
+	"payments-api": "Payments API",
+	"customers-api": "Customers API",
+	"transactions-api": "Transactions API",
+	"webhooks": "Webhooks",
+	"refunds": "Devoluciones"
+}

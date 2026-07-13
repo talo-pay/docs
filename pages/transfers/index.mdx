@@ -1,0 +1,63 @@
+---
+title: "Transferencias Bancarias — Visión General"
+description: "Cómo funciona el riel principal de cobros de Talo y cuándo usar Transfers API o Customers API."
+---
+
+import { Callout, Steps, Tabs, Tab } from "nextra-theme-docs"
+
+# 🏦 Transferencias Bancarias
+
+<Callout type="success">
+	La **Transferencia Bancaria** es el <strong>método predeterminado</strong> de
+	Talo. Conciliamos automáticamente el 99 % de los pagos de tu tienda argentina.
+</Callout>
+
+---
+
+## ¿Qué integra esta sección?
+
+| Modo              | ¿Para qué sirve?                                                       | Endpoint principal |
+| ----------------- | ---------------------------------------------------------------------- | ------------------ |
+| **Payments API**  | Pagos únicos de un checkout B2C (cada orden genera un nuevo CVU/alias) | `POST /payments/`  |
+| **Customers API** | Cobros recurrentes o a clientes conocidos (CVU/alias fijo por persona) | `POST /customers/` |
+
+---
+
+## Flujo end‑to‑end
+
+<Steps>
+### Crear
+_Tu backend_ llama a **Payments API** o **Customers API**. Recibes un **CVU** y **alias**.
+
+### Mostrar
+
+Muestra el CVU/alias en tu checkout **o** redirige al `payment_url` alojado por Talo (estilo Stripe Checkout).
+
+### Transferir
+
+El comprador hace la transferencia desde su home banking / billetera al CVU/alias provisto.
+
+### Notificar
+
+Talo detecta la acreditación y envía un **webhook** a tu `webhook_url`.
+
+### Confirmar
+
+Tu sistema hace un <em>GET</em> del pago (o transacción) para obtener todos los detalles y marca la orden como _pagada_.
+
+</Steps>
+
+---
+
+## Seleccioná la API correcta
+
+| Caso de uso                                             | API recomendada   |
+| ------------------------------------------------------- | ----------------- |
+| Checkout de e‑commerce B2C (N ordenes anónimas por día) | **Payments API**  |
+| Suscripciones mensuales / débitos fijos                 | **Customers API** |
+| Cobro de préstamos o cuotas a la misma persona          | **Customers API** |
+| Pago único B2B (una factura puntual)                    | **Payments API**  |
+
+---
+
+> Continuá con la **[Integración Payments API →](/transfers/payments-api)** o salta a **[Customers API](/transfers/customers-api)** si necesitas cuentas fijas.

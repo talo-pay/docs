@@ -1,0 +1,196 @@
+---
+title: "Transactions API"
+description: "Consulta las transacciones asociadas a tus pagos y clientes."
+---
+
+import { Callout } from "nextra-theme-docs"
+
+# Transactions API
+
+Consulta las transacciones de tu cuenta. Cada vez que se recibe una transferencia bancaria (ya sea por un pago único o un cliente fijo), se genera una transacción.
+
+---
+
+## Listar transacciones
+
+```http
+GET https://api.talo.com.ar/transactions/
+```
+
+### Sandbox
+
+```http
+GET https://sandbox-api.talo.com.ar/transactions/
+```
+
+<Callout type="info">
+	Requiere `Authorization: Bearer` header.
+</Callout>
+
+### Query parameters
+
+| Campo                        | Tipo     | Requerido | Descripción                                          |
+| ---------------------------- | -------- | --------- | ---------------------------------------------------- |
+| `user_id`                    | `string` | Sí        | ID del usuario cuyas transacciones se quieren listar  |
+| `team_id`                    | `string` | No        | Filtrar por equipo                                    |
+| `limit`                      | `string` | No        | Cantidad de resultados por página (numérico)          |
+| `start_date`                 | `string` | No        | Fecha de inicio (ISO 8601)                            |
+| `end_date`                   | `string` | No        | Fecha de fin (ISO 8601)                               |
+| `cursor_user_id`             | `string` | No        | User ID del cursor para paginación                    |
+| `cursor_transaction_id`      | `string` | No        | Transaction ID del cursor para paginación             |
+| `cursor_creation_timestamp`  | `string` | No        | Timestamp del cursor para paginación                  |
+
+<Callout type="tip">
+	Para paginar, usa los valores `cursor_user_id`, `cursor_transaction_id` y `cursor_creation_timestamp` del campo `lastEvaluatedKey` de la respuesta anterior.
+</Callout>
+
+### Ejemplo
+
+```bash
+curl -H "Authorization: Bearer $TALO_TOKEN" \
+  "https://sandbox-api.talo.com.ar/transactions/?user_id=f61876b0-10a5-4e39-8e2c-17343b3fa1b6&limit=10"
+```
+
+### Respuesta
+
+```json
+{
+	"message": "ok",
+	"error": false,
+	"code": 200,
+	"data": {
+		"transactions": [
+			{
+				"transaction_id": "1b5a952a-8a79-4003-b06a-e4043d453456",
+				"user_id": "f61876b0-10a5-4e39-8e2c-17343b3fa1b6",
+				"transactionType": "INBOUND",
+				"amount": "30000",
+				"gross_amount": "30000",
+				"address": "0000630500000060195375",
+				"currency": "ARS",
+				"network": "POLLUX",
+				"commission": 0.605,
+				"commission_amount": "1053.51",
+				"taxes": [
+					{
+						"tax_type": "CREDIT",
+						"tax_rate": 0.6,
+						"tax_amount": 1044.80
+					}
+				],
+				"transaction_status": "PROCESSED",
+				"payment_id": "VAR-f61876b0-FDF_124",
+				"creation_timestamp": "2025-03-12T03:35:32.405Z"
+			}
+		],
+		"lastEvaluatedKey": {
+			"user_id": "f61876b0-10a5-4e39-8e2c-17343b3fa1b6",
+			"transaction_id": "1b5a952a-8a79-4003-b06a-e4043d453456",
+			"creation_timestamp": "2025-03-12T03:35:32.405Z"
+		}
+	}
+}
+```
+
+---
+
+## Consultar una transacción
+
+```http
+GET https://api.talo.com.ar/transactions/{transaction_id}
+```
+
+### Sandbox
+
+```http
+GET https://sandbox-api.talo.com.ar/transactions/{transaction_id}
+```
+
+### Parámetros del path
+
+| Campo            | Tipo     | Descripción                    |
+| ---------------- | -------- | ------------------------------ |
+| `transaction_id` | `string` | ID de la transacción           |
+
+### Query parameters
+
+| Campo     | Tipo     | Requerido | Descripción         |
+| --------- | -------- | --------- | ------------------- |
+| `user_id` | `string` | Sí        | ID del usuario dueño de la transacción |
+
+### Ejemplo
+
+```bash
+curl -H "Authorization: Bearer $TALO_TOKEN" \
+  "https://sandbox-api.talo.com.ar/transactions/1b5a952a-8a79-4003-b06a-e4043d453456?user_id=f61876b0-10a5-4e39-8e2c-17343b3fa1b6"
+```
+
+### Respuesta
+
+```json
+{
+	"message": "ok",
+	"error": false,
+	"code": 200,
+	"data": {
+		"transaction_id": "1b5a952a-8a79-4003-b06a-e4043d453456",
+		"user_id": "f61876b0-10a5-4e39-8e2c-17343b3fa1b6",
+		"transactionType": "INBOUND",
+		"amount": "30000",
+		"gross_amount": "30000",
+		"address": "0000630500000060195375",
+		"address_alias": "talo.ago.1468",
+		"currency": "ARS",
+		"network": "POLLUX",
+		"commission": 0.605,
+		"commission_amount": "1053.51",
+		"taxes": [
+			{
+				"tax_type": "CREDIT",
+				"tax_rate": 0.6,
+				"tax_amount": 1044.80
+			}
+		],
+		"transaction_status": "PROCESSED",
+		"transaction_data": {
+			"PROCESSED": {
+				"amount": 30000,
+				"currency": "ARS",
+				"recipient": "0000630500000060195375",
+				"recipientCuit": "30123456789",
+				"recipientTitular": "EXAMPLE SA",
+				"sender": "00000031123456789",
+				"senderCuit": "20997654321",
+				"senderTitular": "Carolina Perez",
+				"trxId": "1b5a952a-8a79-4003-b06a-e4043d453456"
+			}
+		},
+		"payment_id": "VAR-f61876b0-FDF_124",
+		"creation_timestamp": "2025-03-12T03:35:32.405Z"
+	}
+}
+```
+
+---
+
+## Campos de la transacción
+
+| Campo                | Tipo       | Descripción                                                    |
+| -------------------- | ---------- | -------------------------------------------------------------- |
+| `transaction_id`     | `string`   | ID único de la transacción                                     |
+| `user_id`            | `string`   | ID del usuario dueño                                           |
+| `transactionType`    | `string`   | Tipo: `INBOUND`, `OUTBOUND`, `REFUND`                          |
+| `amount`             | `string`   | Monto neto de la transacción                                   |
+| `gross_amount`       | `string`   | Monto bruto recibido                                           |
+| `address`            | `string`   | CVU receptor                                                   |
+| `address_alias`      | `string`   | Alias receptor                                                 |
+| `currency`           | `string`   | Moneda de la transacción                                       |
+| `network`            | `string`   | Red de procesamiento                                           |
+| `commission`         | `number`   | Porcentaje de comisión                                         |
+| `commission_amount`  | `string`   | Monto de la comisión                                           |
+| `taxes`              | `array`    | Impuestos aplicados (`tax_type`, `tax_rate`, `tax_amount`)     |
+| `transaction_status` | `string`   | Estado: `PROCESSED`                                            |
+| `transaction_data`   | `object`   | Datos del procesamiento bancario                               |
+| `payment_id`         | `string`   | ID del pago asociado (si aplica)                               |
+| `customer_id`        | `string`   | ID del cliente asociado (si aplica)                            |
+| `creation_timestamp` | `string`   | Fecha de creación (ISO 8601)                                   |

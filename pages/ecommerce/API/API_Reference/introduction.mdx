@@ -1,0 +1,25 @@
+# Introducción a la API de Talo
+
+Talo proporciona una interfaz de programación de aplicaciones (API) robusta y fácil de usar, diseñada para permitir a los comercios integrar el procesamiento de pagos con criptomonedas en sus sistemas existentes.
+
+| API        |                               URL |
+| :--------- | --------------------------------: |
+| producción |         `https://api.talo.com.ar` |
+| sandbox    | `https://sandbox-api.talo.com.ar` |
+
+## Nuestra API
+
+Nuestra API se divide en dos componentes clave:
+
+### API de Pagos
+
+Esta es la piedra angular de nuestra funcionalidad de procesamiento de pagos. Permite a los comercios:
+
+- [Crear un pago](/ecommerce/API/API_Reference/payment_api): genera una nueva solicitud de pago en criptomonedas.
+- [Obtener información sobre un pago](/ecommerce/API/API_Reference/payment_api#get-paymentsid): consulta los detalles de una solicitud de pago existente.
+
+### API de Usuarios
+
+Esta API proporciona las herramientas necesarias para autenticar usuarios y gestionar tokens de acceso. En concreto, permite:
+
+- [Obtener tokens de autenticación](/ecommerce/API/API_Reference/authentication): genera un token de acceso único para autenticar solicitudes a nuestra API.
