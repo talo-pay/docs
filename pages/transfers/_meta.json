@@ -4,6 +4,8 @@
 	"payments-api": "Payments API",
 	"customers-api": "Customers API",
 	"transactions-api": "Transactions API",
+	"balances-api": "Balances API",
 	"webhooks": "Webhooks",
-	"refunds": "Devoluciones"
+	"refunds": "Devoluciones",
+	"reporting": "Reportería y conciliación"
 }

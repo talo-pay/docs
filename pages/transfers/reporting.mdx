@@ -1,0 +1,132 @@
+---
+title: "Reportería y conciliación"
+description: "Automatiza tu estado de resultados, cashflow y conciliación contable consumiendo las APIs de Talo."
+---
+
+import { Callout, Steps, Tabs, Tab } from "nextra-theme-docs"
+
+# 📊 Reportería y conciliación
+
+Guía para automatizar reportes financieros — **estado de resultados**, **cashflow**, **conciliación contable** — consumiendo las mismas APIs que usa el dashboard de Talo.
+
+---
+
+## Las 3 APIs que necesitas
+
+| Recurso                                             | Endpoint             | ¿Qué te da?                                                                       |
+| --------------------------------------------------- | -------------------- | --------------------------------------------------------------------------------- |
+| [Payments API](/transfers/payments-api)             | `GET /payments/`     | Ventas: monto facturado, estado de cada cobro, `external_id` de tu orden           |
+| [Transactions API](/transfers/transactions-api)     | `GET /transactions/` | Movimientos de dinero: monto bruto, comisiones, impuestos y monto neto acreditado  |
+| [Balances API](/transfers/balances-api)             | `GET /balances/`     | Saldo disponible actual de la cuenta                                               |
+
+<Callout type="info">
+	Todos requieren `Authorization: Bearer` header. Genera tus credenciales desde
+	*Dashboard → Usuario → Credenciales* y consulta
+	[Autenticación](/ecommerce/API/API_Reference/authentication) para obtener el
+	token.
+</Callout>
+
+---
+
+## Modelo mental
+
+- Un **pago** (`payment`) representa una intención de cobro (una orden). Su `payment_status` te dice si se cobró (`SUCCESS`, `OVERPAID`, `UNDERPAID`) o no (`PENDING`, `EXPIRED`, `REFUND`).
+- Una **transacción** (`transaction`) representa dinero que efectivamente se movió: cada transferencia recibida (`INBOUND`), retiro (`OUTBOUND`) o devolución (`REFUND`).
+- Para un **estado de resultados**, la fuente de verdad son las **transacciones**: ahí están el monto bruto (`gross_amount`), la comisión de Talo (`commission_amount`), los impuestos (`taxes[]`) y el neto acreditado.
+- Para **cashflow**, combina las transacciones del período con el **balance** al cierre.
+
+---
+
+## Paso a paso
+
+<Steps>
+### Obtener un token
+
+```bash
+curl -X POST https://api.talo.com.ar/users/{user_id}/tokens \
+  -H "Content-Type: application/json" \
+  -d '{ "client_id": "TU_CLIENT_ID", "client_secret": "TU_CLIENT_SECRET" }'
+```
+
+### Traer las transacciones del período
+
+Pagina con el cursor `lastEvaluatedKey` hasta agotar los resultados:
+
+```js
+async function getAllTransactions({ userId, token, startDate, endDate }) {
+	const base = "https://api.talo.com.ar/transactions/"
+	const all = []
+	let cursor
+
+	do {
+		const params = new URLSearchParams({
+			user_id: userId,
+			start_date: startDate, // ISO 8601, ej "2026-06-01T00:00:00.000Z"
+			end_date: endDate,
+		})
+		if (cursor) {
+			params.set("cursor_user_id", cursor.user_id)
+			params.set("cursor_transaction_id", cursor.transaction_id)
+			params.set("cursor_creation_timestamp", cursor.creation_timestamp)
+		}
+
+		const res = await fetch(`${base}?${params}`, {
+			headers: { Authorization: `Bearer ${token}` },
+		})
+		const { data } = await res.json()
+
+		all.push(...data.transactions)
+		cursor = data.lastEvaluatedKey
+	} while (cursor)
+
+	return all
+}
+```
+
+### Armar el estado de resultados
+
+```js
+const txs = await getAllTransactions({ userId, token, startDate, endDate })
+
+const inbound = txs.filter((tx) => tx.transactionType === "INBOUND")
+
+const ventasBrutas = sum(inbound.map((tx) => Number(tx.gross_amount)))
+const comisiones = sum(inbound.map((tx) => Number(tx.commission_amount)))
+const impuestos = sum(
+	inbound.flatMap((tx) => (tx.taxes ?? []).map((t) => t.tax_amount))
+)
+const netoAcreditado = ventasBrutas - comisiones - impuestos
+```
+
+### Cruzar con tus órdenes (opcional)
+
+Cada transacción `INBOUND` tiene un `payment_id`. Con `GET /payments/{payment_id}` recuperas el `external_id` (el ID de la orden en tu sistema), el `motive` y los datos del cliente, para conciliar contra tu facturación.
+
+Para listar pagos por rango de fechas, `GET /payments/` pagina con `cursor_id` + `cursor_creation_timestamp` (el campo `cursor` de la respuesta anterior).
+
+### Cerrar el cashflow del período
+
+```bash
+curl -H "Authorization: Bearer $TALO_TOKEN" \
+  "https://api.talo.com.ar/balances/?user_id=$USER_ID&preferred_currency=ARS"
+```
+
+Saldo inicial + neto acreditado − retiros (`OUTBOUND`) − devoluciones (`REFUND`) ≈ saldo final (`totalBalance`).
+
+</Steps>
+
+---
+
+## Buenas prácticas
+
+- **Consulta por rangos de fecha acotados** (por día o por semana) en lugar de traer todo el historial en cada corrida.
+- **Pagina siempre**: si la respuesta trae cursor, hay más resultados. No asumas que la primera página es todo.
+- **Usa webhooks para tiempo real**: en lugar de hacer polling, configura `webhook_url` en tus pagos y recibe la notificación al acreditarse. Ver [Webhooks](/transfers/webhooks).
+- **Montos como strings**: los campos monetarios (`amount`, `gross_amount`, `commission_amount`) llegan como strings. Usa una librería de decimales para sumarlos si el volumen es alto.
+- **Sandbox primero**: probá tu integración contra `https://sandbox-api.talo.com.ar` con el [simulador de pagos](/sandbox/simulator).
+
+<Callout type="tip">
+	¿Necesitas devoluciones en tu conciliación? Las transacciones de tipo `REFUND`
+	y el flujo completo están documentados en
+	[Devoluciones](/transfers/refunds).
+</Callout>

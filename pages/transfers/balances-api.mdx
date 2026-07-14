@@ -1,0 +1,87 @@
+---
+title: "Balances API"
+description: "Consulta el saldo de tu cuenta Talo en tiempo real, expresado en tu moneda preferida."
+---
+
+import { Callout } from "nextra-theme-docs"
+
+# Balances API
+
+Consulta el saldo disponible de tu cuenta Talo. Ideal para automatizar reportes de cashflow, conciliación contable y dashboards financieros.
+
+---
+
+## Consultar balance
+
+```http
+GET https://api.talo.com.ar/balances/
+```
+
+### Sandbox
+
+```http
+GET https://sandbox-api.talo.com.ar/balances/
+```
+
+<Callout type="info">
+	Requiere `Authorization: Bearer` header. Consulta cómo obtener tu token en
+	[Autenticación](/ecommerce/API/API_Reference/authentication).
+</Callout>
+
+### Query parameters
+
+| Campo                | Tipo     | Requerido | Descripción                                                                  |
+| -------------------- | -------- | --------- | ---------------------------------------------------------------------------- |
+| `user_id`            | `string` | Sí        | ID de tu cuenta Talo                                                          |
+| `preferred_currency` | `string` | Sí        | Moneda en la que se expresa el total. Ej: `"ARS"`, `"USDT"`                   |
+| `team_id`            | `string` | No        | Consultar el balance de un equipo específico                                  |
+| `refresh`            | `string` | No        | `"true"` recalcula el balance desde las transacciones (máx. una vez cada 2 h) |
+
+### Ejemplo
+
+```bash
+curl -H "Authorization: Bearer $TALO_TOKEN" \
+  "https://sandbox-api.talo.com.ar/balances/?user_id=f61876b0-10a5-4e39-8e2c-17343b3fa1b6&preferred_currency=ARS"
+```
+
+### Respuesta
+
+```json
+{
+	"message": "ok",
+	"error": false,
+	"code": 200,
+	"data": {
+		"balances": [
+			{
+				"network": "POLLUX",
+				"currency": "ARS",
+				"amount": "1250300.50",
+				"amount_preferred_currency_readable": "1250300.50"
+			}
+		],
+		"totalBalance": {
+			"currency": "ARS",
+			"amountReadable": "1.250.300,50"
+		}
+	}
+}
+```
+
+### Campos de la respuesta
+
+| Campo                                            | Tipo       | Descripción                                                       |
+| ------------------------------------------------ | ---------- | ----------------------------------------------------------------- |
+| `balances`                                       | `object[]` | Saldo desglosado por red y moneda                                 |
+| `balances[].network`                             | `string`   | Red de procesamiento (`POLLUX` para transferencias bancarias ARS) |
+| `balances[].currency`                            | `string`   | Moneda del saldo                                                  |
+| `balances[].amount`                              | `string`   | Monto en la moneda original                                       |
+| `balances[].amount_preferred_currency_readable`  | `string`   | Monto convertido a `preferred_currency`                           |
+| `totalBalance.currency`                          | `string`   | Moneda solicitada en `preferred_currency`                         |
+| `totalBalance.amountReadable`                    | `string`   | Saldo total consolidado, formateado                               |
+
+<Callout type="tip">
+	Para armar un cashflow diario, guarda el `totalBalance` una vez por día y
+	combínalo con el listado de [transacciones](/transfers/transactions-api) del
+	mismo período.
+</Callout>
