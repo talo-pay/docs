@@ -50,7 +50,24 @@ curl -X POST https://api.talo.com.ar/users/{user_id}/tokens \
 
 ### Traer las transacciones del período
 
-Pagina con el cursor `lastEvaluatedKey` hasta agotar los resultados:
+**Cómo funciona la paginación**: `GET /transactions/` devuelve los resultados de a páginas. Si hay más resultados, la respuesta incluye un campo `lastEvaluatedKey` con tres valores (`user_id`, `transaction_id`, `creation_timestamp`). Para pedir la página siguiente, reenviá esos tres valores como `cursor_user_id`, `cursor_transaction_id` y `cursor_creation_timestamp`. Cuando la respuesta viene **sin** `lastEvaluatedKey`, no hay más páginas.
+
+<Tabs items={['cURL','JavaScript','Python','PHP']}>
+  <Tab label="cURL">
+
+```bash
+# Página 1
+curl -H "Authorization: Bearer $TALO_TOKEN" \
+  "https://api.talo.com.ar/transactions/?user_id=$USER_ID&start_date=2026-07-01T00:00:00.000Z&end_date=2026-07-31T23:59:59.000Z"
+
+# Si la respuesta trae data.lastEvaluatedKey, pedí la página siguiente
+# reenviando sus tres campos como cursores:
+curl -H "Authorization: Bearer $TALO_TOKEN" \
+  "https://api.talo.com.ar/transactions/?user_id=$USER_ID&start_date=2026-07-01T00:00:00.000Z&end_date=2026-07-31T23:59:59.000Z&cursor_user_id=<lek.user_id>&cursor_transaction_id=<lek.transaction_id>&cursor_creation_timestamp=<lek.creation_timestamp>"
+```
+
+  </Tab>
+  <Tab label="JavaScript">
 
 ```js
 async function getAllTransactions({ userId, token, startDate, endDate }) {
@@ -61,7 +78,7 @@ async function getAllTransactions({ userId, token, startDate, endDate }) {
 	do {
 		const params = new URLSearchParams({
 			user_id: userId,
-			start_date: startDate, // ISO 8601, ej "2026-06-01T00:00:00.000Z"
+			start_date: startDate, // ISO 8601, ej "2026-07-01T00:00:00.000Z"
 			end_date: endDate,
 		})
 		if (cursor) {
@@ -83,26 +100,141 @@ async function getAllTransactions({ userId, token, startDate, endDate }) {
 }
 ```
 
+  </Tab>
+  <Tab label="Python">
+
+```python
+import requests
+
+def get_all_transactions(user_id, token, start_date, end_date):
+    base = "https://api.talo.com.ar/transactions/"
+    headers = {"Authorization": f"Bearer {token}"}
+    transactions, cursor = [], None
+
+    while True:
+        params = {
+            "user_id": user_id,
+            "start_date": start_date,  # ISO 8601, ej "2026-07-01T00:00:00.000Z"
+            "end_date": end_date,
+        }
+        if cursor:
+            params.update({
+                "cursor_user_id": cursor["user_id"],
+                "cursor_transaction_id": cursor["transaction_id"],
+                "cursor_creation_timestamp": cursor["creation_timestamp"],
+            })
+
+        data = requests.get(base, headers=headers, params=params).json()["data"]
+        transactions += data["transactions"]
+        cursor = data.get("lastEvaluatedKey")
+        if not cursor:
+            return transactions
+```
+
+  </Tab>
+  <Tab label="PHP">
+
+```php
+function getAllTransactions($userId, $token, $startDate, $endDate) {
+    $base = "https://api.talo.com.ar/transactions/";
+    $transactions = [];
+    $cursor = null;
+
+    do {
+        $params = [
+            "user_id" => $userId,
+            "start_date" => $startDate, // ISO 8601, ej "2026-07-01T00:00:00.000Z"
+            "end_date" => $endDate,
+        ];
+        if ($cursor) {
+            $params["cursor_user_id"] = $cursor["user_id"];
+            $params["cursor_transaction_id"] = $cursor["transaction_id"];
+            $params["cursor_creation_timestamp"] = $cursor["creation_timestamp"];
+        }
+
+        $ch = curl_init($base . "?" . http_build_query($params));
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_HTTPHEADER, ["Authorization: Bearer $token"]);
+        $data = json_decode(curl_exec($ch), true)["data"];
+        curl_close($ch);
+
+        $transactions = array_merge($transactions, $data["transactions"]);
+        $cursor = $data["lastEvaluatedKey"] ?? null;
+    } while ($cursor);
+
+    return $transactions;
+}
+```
+
+  </Tab>
+</Tabs>
+
 ### Armar el estado de resultados
+
+**Cómo se calcula**: filtrá las transacciones de tipo `INBOUND` (dinero que entró). Sobre ellas: las **ventas brutas** son la suma de `gross_amount`, las **comisiones** la suma de `commission_amount`, y los **impuestos** la suma de `tax_amount` dentro de cada `taxes[]`. El **neto acreditado** es ventas brutas − comisiones − impuestos. Los montos llegan como strings y algunos campos pueden venir vacíos o `null` — convertí con cuidado.
+
+<Tabs items={['JavaScript','Python','PHP']}>
+  <Tab label="JavaScript">
 
 ```js
 const txs = await getAllTransactions({ userId, token, startDate, endDate })
 
 const inbound = txs.filter((tx) => tx.transactionType === "INBOUND")
 
-const ventasBrutas = sum(inbound.map((tx) => Number(tx.gross_amount)))
-const comisiones = sum(inbound.map((tx) => Number(tx.commission_amount)))
+const sum = (xs) => xs.reduce((a, b) => a + b, 0)
+const ventasBrutas = sum(inbound.map((tx) => Number(tx.gross_amount ?? 0)))
+const comisiones = sum(inbound.map((tx) => Number(tx.commission_amount ?? 0)))
 const impuestos = sum(
-	inbound.flatMap((tx) => (tx.taxes ?? []).map((t) => t.tax_amount))
+	inbound.flatMap((tx) => (tx.taxes ?? []).map((t) => Number(t.tax_amount ?? 0)))
 )
 const netoAcreditado = ventasBrutas - comisiones - impuestos
 ```
+
+  </Tab>
+  <Tab label="Python">
+
+```python
+txs = get_all_transactions(user_id, token, start_date, end_date)
+
+inbound = [t for t in txs if t.get("transactionType") == "INBOUND"]
+
+ventas_brutas = sum(float(t.get("gross_amount") or 0) for t in inbound)
+comisiones = sum(float(t.get("commission_amount") or 0) for t in inbound)
+impuestos = sum(
+    float(tax.get("tax_amount") or 0)
+    for t in inbound
+    for tax in (t.get("taxes") or [])
+)
+neto_acreditado = ventas_brutas - comisiones - impuestos
+```
+
+  </Tab>
+  <Tab label="PHP">
+
+```php
+$txs = getAllTransactions($userId, $token, $startDate, $endDate);
+
+$inbound = array_filter($txs, fn($t) => ($t["transactionType"] ?? "") === "INBOUND");
+
+$ventasBrutas = $comisiones = $impuestos = 0.0;
+foreach ($inbound as $t) {
+    $ventasBrutas += floatval($t["gross_amount"] ?? 0);
+    $comisiones += floatval($t["commission_amount"] ?? 0);
+    foreach ($t["taxes"] ?? [] as $tax) {
+        $impuestos += floatval($tax["tax_amount"] ?? 0);
+    }
+}
+$netoAcreditado = $ventasBrutas - $comisiones - $impuestos;
+```
+
+  </Tab>
+</Tabs>
 
 ### Cruzar con tus órdenes (opcional)
 
 Cada transacción `INBOUND` tiene un `payment_id`. Con `GET /payments/{payment_id}` recuperas el `external_id` (el ID de la orden en tu sistema), el `motive` y los datos del cliente, para conciliar contra tu facturación.
 
-Para listar pagos por rango de fechas, `GET /payments/` pagina con `cursor_id` + `cursor_creation_timestamp` (el campo `cursor` de la respuesta anterior).
+`GET /payments/` no pagina hoy en la práctica: cuando pasás `user_id`, la API ignora `limit` y no devuelve ningún cursor de salida — siempre trae todos los pagos que matchean `start_date`/`end_date` en una sola respuesta (ver detalle y Callout en [Payments API](/transfers/payments-api#listar-pagos)). Acotá el rango de fechas para no traer de más; no dependas de `cursor_id`/`limit` para este endpoint.
 
 ### Cerrar el cashflow del período
 
@@ -120,7 +252,7 @@ Saldo inicial + neto acreditado − retiros (`OUTBOUND`) − devoluciones (`REFU
 ## Buenas prácticas
 
 - **Consulta por rangos de fecha acotados** (por día o por semana) en lugar de traer todo el historial en cada corrida.
-- **Pagina siempre**: si la respuesta trae cursor, hay más resultados. No asumas que la primera página es todo.
+- **Pagina siempre en `/transactions/`**: si la respuesta trae `lastEvaluatedKey`, hay más resultados — esto funciona hoy y está verificado. **`/payments/` es distinto**: no expone cursor de salida ni respeta `limit`, así que siempre trae todo lo que matchea el rango de fechas en una sola respuesta (ver nota en [Payments API](/transfers/payments-api#listar-pagos)).
 - **Usa webhooks para tiempo real**: en lugar de hacer polling, configura `webhook_url` en tus pagos y recibe la notificación al acreditarse. Ver [Webhooks](/transfers/webhooks).
 - **Montos como strings**: los campos monetarios (`amount`, `gross_amount`, `commission_amount`) llegan como strings. Usa una librería de decimales para sumarlos si el volumen es alto.
 - **Sandbox primero**: probá tu integración contra `https://sandbox-api.talo.com.ar` con el [simulador de pagos](/sandbox/simulator).

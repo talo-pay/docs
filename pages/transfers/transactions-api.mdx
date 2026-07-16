@@ -41,7 +41,11 @@ GET https://sandbox-api.talo.com.ar/transactions/
 | `cursor_creation_timestamp`  | `string` | No        | Timestamp del cursor para paginación                  |
 
 <Callout type="tip">
-	Para paginar, usa los valores `cursor_user_id`, `cursor_transaction_id` y `cursor_creation_timestamp` del campo `lastEvaluatedKey` de la respuesta anterior.
+	Para paginar, usa los valores `cursor_user_id`, `cursor_transaction_id` y `cursor_creation_timestamp` del campo `lastEvaluatedKey` de la respuesta anterior. A diferencia de `GET /payments/`, en este endpoint **`limit` sí se respeta y la paginación con `lastEvaluatedKey` funciona** — verificado en sandbox pidiendo `limit=3` sobre una cuenta con más movimientos y encadenando dos páginas con el cursor de salida.
+</Callout>
+
+<Callout type="warning">
+	**`transaction_id` viene con prefijo `TX#`** (ej. `TX#87723204-ba9e-4e70-afba-da165eac4a32`), no como UUID limpio. Además, cada item trae un campo `id` adicional (no documentado antes) con el mismo UUID **sin** el prefijo. Si necesitás el UUID limpio para otra llamada, usá `id`, no `transaction_id`.
 </Callout>
 
 ### Ejemplo
@@ -51,7 +55,7 @@ curl -H "Authorization: Bearer $TALO_TOKEN" \
   "https://sandbox-api.talo.com.ar/transactions/?user_id=f61876b0-10a5-4e39-8e2c-17343b3fa1b6&limit=10"
 ```
 
-### Respuesta
+### Respuesta (real, sandbox)
 
 ```json
 {
@@ -61,32 +65,28 @@ curl -H "Authorization: Bearer $TALO_TOKEN" \
 	"data": {
 		"transactions": [
 			{
-				"transaction_id": "1b5a952a-8a79-4003-b06a-e4043d453456",
+				"transaction_id": "TX#87723204-ba9e-4e70-afba-da165eac4a32",
+				"id": "87723204-ba9e-4e70-afba-da165eac4a32",
 				"user_id": "f61876b0-10a5-4e39-8e2c-17343b3fa1b6",
 				"transactionType": "INBOUND",
-				"amount": "30000",
-				"gross_amount": "30000",
-				"address": "0000630500000060195375",
+				"amount": "1185.48",
+				"gross_amount": "1200",
+				"address": "0000716149000693369021",
+				"address_alias": "jul.807995.talo",
 				"currency": "ARS",
 				"network": "POLLUX",
-				"commission": 0.605,
-				"commission_amount": "1053.51",
-				"taxes": [
-					{
-						"tax_type": "CREDIT",
-						"tax_rate": 0.6,
-						"tax_amount": 1044.80
-					}
-				],
+				"commission": 1.21,
+				"commission_amount": "14.52",
+				"taxes": [],
 				"transaction_status": "PROCESSED",
-				"payment_id": "VAR-f61876b0-FDF_124",
-				"creation_timestamp": "2025-03-12T03:35:32.405Z"
+				"payment_id": "VAR-f61876b0-DOCFIX-1784132231",
+				"creation_timestamp": "2026-07-15T16:18:08.630Z"
 			}
 		],
 		"lastEvaluatedKey": {
 			"user_id": "f61876b0-10a5-4e39-8e2c-17343b3fa1b6",
-			"transaction_id": "1b5a952a-8a79-4003-b06a-e4043d453456",
-			"creation_timestamp": "2025-03-12T03:35:32.405Z"
+			"transaction_id": "TX#87723204-ba9e-4e70-afba-da165eac4a32",
+			"creation_timestamp": "2026-07-15T16:18:08.630Z"
 		}
 	}
 }
@@ -105,6 +105,14 @@ GET https://api.talo.com.ar/transactions/{transaction_id}
 ```http
 GET https://sandbox-api.talo.com.ar/transactions/{transaction_id}
 ```
+
+<Callout type="error">
+	**Known issue (backend) — verificado en sandbox el 2026-07-15**: este endpoint devuelve **`403 Forbidden`** (`{"message":"Forbidden"}`) para tokens de merchant con rol `owner` (el token estándar que devuelve `POST /users/{user_id}/tokens`), incluso siendo el dueño de la transacción consultada. Se probó con el UUID real, con el UUID prefijado `TX#` (URL-encoded) y con un id inexistente: siempre 403. Sin header `Authorization` la API responde `401 Unauthorized` (o sea, el authorizer corre igual), así que no es un problema de token inválido ni de formato de id.
+
+	**Causa raíz identificada en el código**: `auth_api_sls/src/privileges.ts`, dentro de `[transactionsAPI]`, la entrada `"/{transaction_id}": { GET: [PrivateRole.YODA, PrivateRole.R2D2] }` sólo habilita roles internos. La entrada hermana `"/"` (listar transacciones) sí incluye `PublicRole.OWNER`, `PublicRole.SUPERVISOR`, etc. Es decir, **a este endpoint le falta agregar `PublicRole.OWNER` (y probablemente `PublicRole.SUPERVISOR`/`SUPERVISOR_JR`) a la lista de roles permitidos** — luce como un endpoint que quedó registrado como interno-only por error, mientras el resto de la Transactions API sí es consumible por merchants.
+
+	**Workaround mientras no se corrija**: usá `GET /transactions/?user_id=...` (que sí funciona) y filtrá client-side por `transaction_id` (recordá el prefijo `TX#` — ver sección anterior) o por `id`. Esa respuesta ya incluye todos los campos de detalle de la transacción.
+</Callout>
 
 ### Parámetros del path
 
@@ -125,7 +133,7 @@ curl -H "Authorization: Bearer $TALO_TOKEN" \
   "https://sandbox-api.talo.com.ar/transactions/1b5a952a-8a79-4003-b06a-e4043d453456?user_id=f61876b0-10a5-4e39-8e2c-17343b3fa1b6"
 ```
 
-### Respuesta
+### Respuesta esperada (según el diseño de la API, no reproducible hoy)
 
 ```json
 {
@@ -169,6 +177,16 @@ curl -H "Authorization: Bearer $TALO_TOKEN" \
 		"creation_timestamp": "2025-03-12T03:35:32.405Z"
 	}
 }
+```
+
+### Respuesta real (verificado en sandbox)
+
+```bash
+$ curl -H "Authorization: Bearer $TALO_TOKEN" \
+  "https://sandbox-api.talo.com.ar/transactions/TX%2387723204-ba9e-4e70-afba-da165eac4a32?user_id=6a0031c1-57ac-4be1-8cd3-303ca25366cd"
+
+HTTP/2 403
+{"message":"Forbidden"}
 ```
 
 ---

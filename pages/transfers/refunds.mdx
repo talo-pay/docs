@@ -1,3 +1,5 @@
+import { Callout } from "nextra-theme-docs"
+
 # Crear reembolso para un pago
 
 **POST** `/payments/{payment_id}/refunds`
@@ -54,42 +56,85 @@ El cuerpo debe ser un objeto JSON que discrimina por el campo `refund_type`:
 
 ## Respuestas
 
-### 200 OK
+<Callout type="warning">
+	**Shape real verificado (sandbox, 2026-07-15)**: la respuesta **no** es `{"status":"ok","data":{refund_status,...}}` como podría esperarse — es el envelope estándar de la API (`{"message","error","code","data"}`) donde **`data` es el PAGO COMPLETO actualizado** (no un objeto de refund aislado). El detalle del reembolso recién creado aparece dentro de `data.refunds[]` (al final del array) y también generó una transacción `OUTBOUND` con `is_refund: true` en `data.transactions[]`. Además, en sandbox el reembolso `PARTIAL` queda en `refund_status: "SUCCESS"` **inmediatamente** (no pasa por `PENDING`) porque el flujo de refund crea y liquida la transacción de reversa de forma síncrona antes de responder.
+</Callout>
+
+### 200 OK (real, sandbox — payload redactado)
 
 ```json
 {
-	"status": "ok",
+	"message": "ok",
+	"error": false,
+	"code": 200,
 	"data": {
-		"refund_status": "PENDING",
-		"refund_type": "PARTIAL",
-		"amount": "500.00",
-		"amount_with_tax": "530.00",
-		"tax_amount": "30.00",
-		"currency": "ARS",
-		"blame": {
-			"team_id": "soporte",
-			"mail": "soporte@talo.com.ar"
+		"id": "VAR-6a0031c1-...-DOCFIX-1784132231",
+		"external_id": "DOCFIX-1784132231",
+		"payment_status": "SUCCESS",
+		"price": { "currency": "ARS", "amount": 1200 },
+		"transaction_fields": {
+			"amount": "1200",
+			"commission_amount": "14.52",
+			"total_paid": { "amount": "1200", "currency": "ARS" },
+			"total_refunded": { "amount": "400", "currency": "ARS" },
+			"credited_amount": "1185.48",
+			"net_paid": { "amount": "800", "currency": "ARS" },
+			"currency": "ARS",
+			"network": "POLLUX"
 		},
-		"creation_timestamp": "2024-06-07T12:34:56Z",
-		"transaction_ids": []
-	},
-	"code": 200
+		"transactions": [
+			{
+				"transaction_id": "f7c5989d-5088-406b-a47d-9dccd948b613",
+				"amount": "1200",
+				"transactionType": "INBOUND",
+				"transaction_status": "PROCESSED"
+			},
+			{
+				"transaction_id": "63e2574e-3903-4add-b1f4-fe677e3c5c21",
+				"amount": "-400.00",
+				"gross_amount": "-400",
+				"transactionType": "OUTBOUND",
+				"transaction_status": "PROCESSED",
+				"is_refund": true,
+				"inbound_transaction_id": "f7c5989d-5088-406b-a47d-9dccd948b613",
+				"payment_id": "VAR-6a0031c1-...-DOCFIX-1784132231"
+			}
+		],
+		"refunds": [
+			{
+				"refund_status": "SUCCESS",
+				"refund_type": "PARTIAL",
+				"amount": "400",
+				"amount_with_tax": "400",
+				"tax_amount": "0",
+				"currency": "ARS",
+				"blame": {
+					"team_id": "docs-verification",
+					"mail": "agustin@talo.com.ar"
+				},
+				"creation_timestamp": "2026-07-15T16:19:02.379Z",
+				"transaction_ids": ["63e2574e-3903-4add-b1f4-fe677e3c5c21"]
+			}
+		]
+	}
 }
 ```
 
+Para leer el resultado del reembolso que acabás de crear, tomá el **último elemento** de `data.refunds[]` (el array conserva el historial completo de reembolsos del pago).
+
 ### Estados del reembolso (`refund_status`)
 
-| Estado    | Descripción                          |
-| --------- | ------------------------------------ |
-| `PENDING` | El reembolso está siendo procesado   |
-| `SUCCESS` | El reembolso se completó con éxito   |
-| `FAILED`  | El reembolso falló                   |
+| Estado    | Descripción                                                                                     |
+| --------- | ------------------------------------------------------------------------------------------------|
+| `PENDING` | El reembolso está siendo procesado (no observado en sandbox para refunds a la red POLLUX/ARS)   |
+| `SUCCESS` | El reembolso se completó con éxito — en sandbox esto ocurre de inmediato, en la misma respuesta |
+| `FAILED`  | El reembolso falló                                                                               |
 
 ### 4XX/5XX Error
 
 ```json
 {
-	"status": "error",
+	"error": true,
 	"message": "Descripción del error",
 	"code": 400
 }
@@ -126,3 +171,5 @@ Authorization: Bearer {access_token}
 - El campo `blame` es obligatorio y debe identificar al responsable del reembolso.
 - El endpoint valida que el monto para reembolsos parciales no exceda el monto original del pago.
 - Actualmente solo se soporta la moneda ARS.
+- La respuesta trae el **pago completo** en `data`, no un objeto de refund aislado — leé `data.refunds[]` (último elemento) para el estado del reembolso recién creado.
+- En sandbox, los reembolsos parciales sobre transacciones POLLUX/ARS quedan `SUCCESS` en la misma respuesta del POST — no hace falta pollear ni confirmar por separado.
