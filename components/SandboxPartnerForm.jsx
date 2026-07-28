@@ -1,3 +1,5 @@
+"use client"
+
 import React, { useState } from "react"
 
 const SANDBOX_API_URL = "https://sandbox-api.talo.com.ar/auth/sandbox/partners"

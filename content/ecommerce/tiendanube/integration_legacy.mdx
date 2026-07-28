@@ -1,0 +1,76 @@
+import Link from "next/link"
+import { Steps, Callout } from "nextra/components"
+
+# Integración Tiendanube (legacy)
+
+<Callout>
+	Aviso de Deprecacion: Esta version de la integracion ya fue deprecada y no
+	cuentan con soporte. En caso de contar con esta integracion dirigirse a [Como
+	migrar a la nueva integración](./migration).
+</Callout>
+## Requisitos previos
+
+<Callout>
+	Tip: Necesitarás una cuenta de Talo para comenzar. Si aún no tienes una,
+	puedes crearla [aquí](https://talo.com.ar).
+</Callout>
+
+## Mejoras de esta integración
+
+Esta nueva versión permite agregar un botón en el checkout para que los usuarios puedan ir directo a pagar sin tener que copiar y pegar links, o ingresar el monto de la compra.
+Además actualiza el estado de tu orden cuando el pago es realizado, para que no tengas que hacerlo manualmente.
+
+## Configuración de la nueva integración
+
+<Steps>
+	### Paso 1
+
+    Iniciá sesión en Talo y navega hasta <Link href="https://app.talo.com.ar/settings/plugins/tiendanube" target="_blank">Integraciones > Tiendanube</Link> en el menú desplegable de arriba a la derecha.
+
+    ### Paso 2
+
+    Conectá tu tienda haciendo click en "Conectar". Esto nos va a permitir desde Talo agregar el botón de pago en el checkout de tu tienda y además poder notificarte cuando el pago esté realizado.
+
+    ### Paso 3
+
+    Ya casi terminarmos, solo queda activar y configurar el método de pago en la tienda. Para eso, tenés que dirigirte a las configuraciones de pago en tu Tiendanube y buscá el método de pago "A convenir". Activalo y entrá para poder configurarlo. Llená los campos como se indica a continuación.
+    ![Tiendanube Dashboard Crypto](/tiendanube/tiendanube_metodos_pago_configuracion.gif)
+    **Nombre a mostrar en el checkout:**
+
+    ```text copy
+    Crypto (powered by Talo)
+    ```
+
+    <Callout>
+    	Tip: tené en cuenta que este es el texto que se muestra en la opción de pago
+    	del checkout. Si estás usando Talo para pagos en Reales recomendamos que
+    	utilices "Pix (powered by Talo)" como texto a mostrar.
+    </Callout>
+
+    **Instrucciones para el cliente post-compra:**
+
+    ```text copy
+
+    Quedamos a la espera del pago a través del siguiente botón
+
+    ```
+
+    <Callout>
+    	Tip: En el checkout aparecerá un botón debajo de las instrucciones de este
+    	campo. Si se utiliza el método "A convenir" para otras cosas además de Talo,
+    	recomendamos que se aclare que el botón es para pagos con Talo.
+    </Callout>
+    **Descuento para ofrecer:** Cripto es un método de pago novedoso que puede implicar
+    ciertos costos para el usuario. Ofrece un incentivo para usar este medio. Recomendamos
+    un descuento mínimo del 5%, idealmente el mismo que para pagos por transferencia
+    o efectivo.
+
+    ```text copy
+    20%
+    ```
+
+    Guarda los cambios.
+
+</Steps>
+Una vez que finalices estos pasos, ya están habilitados los pagos en cripto en tu tienda. Así es como se verá el checkout para el usuario.
+<img src="/tiendanube/tiendanube_checkout.png" />

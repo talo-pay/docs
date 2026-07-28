@@ -1,0 +1,56 @@
+import AddNetworkButton from "../../components/AddNetworkButton"
+import Link from "next/link"
+import { Callout } from "nextra/components"
+
+# Modo Sandbox
+
+**Talo** ofrece un entorno Sandbox que te permite probar las integraciones en un entorno seguro, utilizando "fondos" ficticios, sin afectar tu cuenta de producción. Este ambiente es ideal para probar tu implementación de la API de **Talo** antes de salir a producción.
+
+## ¿Qué es el Modo Sandbox?
+
+El Modo Sandbox es un entorno de pruebas independiente de tu cuenta de producción en **Talo**. Aquí puedes realizar todas las operaciones que realizarías en el entorno de producción, pero sin utilizar fondos reales.
+
+Puedes acceder al Modo Sandbox creando una cuenta en [Talo Sandbox](https://sandbox.talo.com.ar). Puedes usar las mismas credenciales que en tu cuenta real o crear unas completamente nuevas.
+
+> Ten en cuenta que la cuenta de Sandbox es independiente a la cuenta de **Talo** en producción. Los fondos en modo sandbox no tienen valor real, son simplemente para poder realizar pruebas.
+
+## Comenzando con el Modo Sandbox
+
+Una vez que hayas creado tu cuenta en [Talo Sandbox](https://sandbox.talo.com.ar), estás listo para comenzar a probar la integración. Si ya has realizado la integración siguiendo la [guía de pagos](/ecommerce/API/API_Reference/payment_api), la única diferencia para operar en Modo Sandbox es la URL de la API. Para realizar las pruebas, las solicitudes deben enviarse a `https://sandbox-api.talo.com.ar` en lugar de `https://talo.com.ar`.
+
+> Recordá que los fondos y los pagos que se hagan desde tu cuenta de sandbox y a la URL de sandbox son independientes de los de la cuenta de producción y no tienen valor real.
+
+Ahora, lo único que falta es comenzar a crear órdenes de pago y transferirles dinero para probar todo el ciclo del proceso de pago.
+
+## Como crear una wallet y conseguir dinero para probar en el modo sandbox
+
+### 1. Billetera para Sandbox
+
+La forma más segura de enviar y recibir criptomonedas es desde una billetera descentralizada como [Metamask](https://metamask.io/). Si ya tienes descargada la billetera y una cuenta creada, sólo te falta agregar la red de prueba y obtener fondos de prueba.
+
+### 2. Agregar Redes de Prueba
+
+Por defecto, en billeteras como Metamask, ya está configurada la red principal de Ethereum, también llamada _Ethereum Mainnet_. Para poder realizar transacciones en la red de prueba, debes agregarla manualmente a tu billetera.
+
+Puedes seguir el tutorial en la página de [Binance Smart Chain](https://academy.binance.com/es/articles/connecting-metamask-to-binance-smart-chain) para aprender a agregar la red de prueba manualmente.
+
+<br />
+<AddNetworkButton />
+
+### 3. Obtener Fondos de Prueba
+
+Para realizar transacciones en un ambiente de prueba, existen sitios llamados "faucets" que proporcionan tokens y monedas para usar en las testnets. Estos tokens no tienen valor real, simplemente te permiten probar interacciones de forma segura.
+
+A continuación, se muestran los enlaces a los faucets de algunas redes de prueba comúnmente utilizadas:
+
+| Network     | Faucet URL                                                                           |
+| :---------- | :----------------------------------------------------------------------------------- |
+| BSC Testnet | [https://testnet.binance.org/faucet-smart](https://testnet.binance.org/faucet-smart) |
+
+> \*\*
+
+Listo. Ya estás preparado para comenzar a probar tu integración antes de pasar a producción.
+
+Finalmente, podrás realizar las pruebas siendo tu propio cliente y enviando el dinero desde la billetera que has creado y a la que has enviado las monedas de prueba. De esta forma, también puedes experimentar el flujo de pago desde el punto de vista del cliente.
+
+El modo Sandbox es una herramienta poderosa para asegurarte de que tu integración con **Talo** sea fluida y libre de errores. Te recomendamos hacer uso de este entorno antes de moverte a producción.

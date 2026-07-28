@@ -1,0 +1,44 @@
+import Link from "next/link"
+
+# ¿Qué hay de nuevo?
+
+Esta página contiene los anuncios de cambios en el sistema y en la documentación de talo cronológicamente.
+
+### Payments API - Actualización de metadatos
+
+Nuevas funcionalidades para la gestión de metadatos en pagos.
+
+**Funcionalidad**
+
+- Nuevo endpoint PUT `/payments/{paymentId}/metadata` para actualizar metadatos con historial
+- Migración del campo `motivo` a `motive` en la API de pagos
+- Sistema de seguimiento de historial para cambios en metadatos
+- Validación de permisos por usuario y restricciones por rol
+
+**Documentación**
+
+- <Link href="/transfers/payments-api#actualizar-metadatos-del-pago">
+  	Guía completa del endpoint de metadatos
+  </Link>
+- Actualización de ejemplos de código con el nuevo campo `motive`
+- Documentación de la estructura de historial de metadatos
+
+### talo API v1.0.0 en modo sandbox
+
+Primera versión de la API en sandbox disponible para pruebas.
+
+**Funcionalidad**
+
+- <Link href="ecommerce/API/API_Reference/payment_api">Crear pago</Link>
+- <Link href="ecommerce/API/API_Reference/payment_api">
+  	Obtener información del pago
+  </Link>
+- <Link href="ecommerce/API/API_Reference/users_api">
+  	Obtener token de autenticación a partir de credenciales
+  </Link>
+
+**Documentación**
+
+- <Link href="/ecommerce/sandbox">
+  	Guía para hacer pruebas en modo sandbox.
+  </Link>

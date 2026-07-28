@@ -1,0 +1,247 @@
+import { Callout, Steps } from "nextra/components"
+import { ODOO_ADDON_DOWNLOAD_URL } from "../../../lib/odoo"
+
+# Aceptá transferencias con Alias/CVU en tu Odoo
+
+Instalá el módulo `payment_talo` y sumá transferencia bancaria con Alias y CVU como medio de pago en el checkout de tu eCommerce Odoo 17. Te guiamos paso a paso, desde los prerequisitos hasta pasar a producción.
+
+<Callout emoji="💡">
+	Tip: Necesitás una cuenta de Talo para generar tus credenciales de API. Si
+	todavía no tenés una, podés crearla en [talo.com.ar](https://talo.com.ar).
+</Callout>
+
+## Prerequisitos
+
+- **Odoo 17** con los módulos `Website` y `eCommerce` (`website_sale`) instalados.
+- Módulo `l10n_ar` instalado (`payment_talo` depende de `payment`, `account` y `l10n_ar`).
+- Una **cuenta Talo** (sandbox o producción) para generar credenciales de API.
+- Acceso de administrador a tu instancia de Odoo.
+- Una URL pública alcanzable por Talo (en local, usá un túnel tipo ngrok). El módulo arma el `webhook_url` con la `web.base.url` de Odoo.
+
+<Steps>
+
+    ### Paso 1: descargá el módulo `payment_talo`
+
+    Descargá el módulo listo para instalar y descomprimilo dentro de la carpeta de `addons` de tu Odoo (la que figurá en `addons_path` de tu `odoo.conf`, o el volumen de addons si usás Docker):
+
+    <p style={{ margin: "1.5rem 0" }}>
+    	<a
+    		href={ODOO_ADDON_DOWNLOAD_URL}
+    		style={{
+    			display: "inline-block",
+    			padding: "1rem 1.75rem",
+    			borderRadius: "0.5rem",
+    			background: "#16a34a",
+    			color: "#fff",
+    			textDecoration: "none",
+    			textAlign: "center",
+    			lineHeight: 1.3,
+    		}}
+    	>
+    		<span style={{ display: "block", fontSize: "1.2rem", fontWeight: 700 }}>
+    			Descargar Integración Talo Odoo
+    		</span>
+    		<span
+    			style={{
+    				display: "block",
+    				marginTop: "0.25rem",
+    				fontSize: "0.85rem",
+    				fontWeight: 500,
+    				opacity: 0.9,
+    			}}
+    		>
+    			payment_talo.zip
+    		</span>
+    	</a>
+    </p>
+
+    Después de descomprimir, deberías tener una carpeta `payment_talo/` dentro de tus addons (con `__manifest__.py` adentro).
+
+    <Callout emoji="📢" type="info">
+    	El módulo todavía no está en Odoo Apps. La descarga de arriba es el
+    	camino soportado para instalarlo.
+    </Callout>
+
+    ### Paso 2: instalá el módulo en Odoo
+
+    Actualizá la lista de aplicaciones y activá `payment_talo`:
+
+    - Desde el panel: activá el **modo desarrollador**, andá a **Aplicaciones**, hacé click en **Actualizar lista de aplicaciones**, buscá "Talo" e instalalo.
+    - O desde la terminal, si corrés Odoo con Docker:
+
+    ```bash
+    docker exec <tu_container_odoo> odoo \
+      -d <tu_base_de_datos> \
+      -i payment_talo \
+      --stop-after-init \
+      --no-http
+    ```
+
+    Al instalarse, el módulo crea automáticamente el proveedor de pago **Talo** en estado **Modo de prueba**. En ese estado, el módulo usa la API sandbox de Talo (`sandbox-api.talo.com.ar`).
+
+    ### Paso 3: configurá tus credenciales
+
+    Desde el **panel de administración de Odoo** (`https://<tu-dominio>/web`, o `http://localhost:8069/web` en local), andá a:
+
+    **Facturación / Contabilidad → Configuración → Proveedores de pago**
+
+    (alternativa: **Sitio Web → Configuración → Pagos**)
+
+    Atajo directo al listado de proveedores (reemplazá el dominio por el tuyo):
+
+    ```
+    https://<tu-dominio>/web#action=payment.action_payment_provider
+    ```
+
+    Abrí el proveedor **Talo**, dejá el estado en **Modo de prueba** y en la pestaña **Credenciales** completá:
+
+    - **Talo User ID**
+    - **Talo Client ID**
+    - **Talo Client Secret**
+
+    Estas tres credenciales las generás desde tu panel de Talo ([cuenta sandbox](https://sandbox.talo.com.ar/signup) para pruebas).
+
+    <img
+    	src="/odoo/provider_credentials.png"
+    	alt="Formulario del proveedor Talo en Odoo: estado Modo de prueba y pestaña Credenciales con User ID, Client ID y Client Secret"
+    />
+
+    <Callout emoji="⚠️" type="warning">
+    	En la UI de Odoo el estado se llama **Modo de prueba** (no "Sandbox").
+    	Con **Modo de prueba**, el módulo apunta a
+    	`https://sandbox-api.talo.com.ar/`. Con **Activado**, apunta a
+    	`https://api.talo.com.ar/`.
+    </Callout>
+
+    ### Paso 4: publicá el método de pago
+
+    En el mismo formulario del proveedor **Talo**, abrí la pestaña **Configuración** y verificá que el método de pago **Transferencia Talo** esté asociado. Desde ahí (o desde **Sitio Web → Configuración → Pagos**) asegurate de que Talo quede disponible en el checkout.
+
+    <img
+    	src="/odoo/provider_configuration.png"
+    	alt="Pestaña Configuración del proveedor Talo con el método de pago Transferencia Talo"
+    />
+
+    En el listado de proveedores deberías ver **Talo** en **Modo de prueba**:
+
+    <img
+    	src="/odoo/providers_list.png"
+    	alt="Listado de proveedores de pago filtrado por Talo en Modo de prueba"
+    />
+
+    ### Paso 5: probá en sandbox
+
+    Dejá el proveedor en **Modo de prueba** y usá credenciales de tu cuenta [Talo Sandbox](https://sandbox.talo.com.ar):
+
+    1. Andá a tu tienda (`/shop`), agregá un producto y avanzá hasta el checkout.
+    2. Elegí **Talo** como medio de pago.
+    3. Vas a ver una página propia de Odoo con el **Alias**, el **CVU (sandbox)**, el monto y el vencimiento — no salís del sitio.
+    4. Simulá la transferencia con el [faucet](/sandbox/simulator) de sandbox. Cuando Talo notifique el pago al webhook del módulo, la orden se confirma sola.
+
+    Así se ve la pantalla de instrucciones de transferencia:
+
+    <img
+    	src="/odoo/transfer_instructions.png"
+    	alt="Pantalla de instrucciones de transferencia Talo en Odoo con Alias, CVU sandbox y monto"
+    />
+
+    <Callout emoji="💡">
+    	Para probar el ciclo completo en sandbox:
+    	- [Modo Sandbox](/ecommerce/sandbox) — crear cuenta y credenciales de prueba
+    	- [Simulador / faucet](/sandbox/simulator) — simular la transferencia al CVU
+    	- [Webhooks](/transfers/webhooks) — qué recibe tu endpoint y cómo confirmar el pago
+
+    	Si tu Odoo corre en localhost, exponé la instancia con un túnel (ngrok u otro) y configurá `web.base.url` con esa URL pública: el módulo usa esa base para armar el `webhook_url` de cada pago.
+    </Callout>
+
+    ### Paso 6: pasá a producción
+
+    Cuando termines de probar en sandbox:
+
+    1. Reemplazá las credenciales de sandbox por las de **producción** de tu cuenta Talo.
+    2. Cambiá el estado del proveedor de **Modo de prueba** a **Activado**. El módulo empieza a usar `https://api.talo.com.ar/` automáticamente.
+
+    No tenés que configurar ningún webhook permanente en el panel de Talo: en cada pago el módulo ya envía su propio `webhook_url` (`https://<tu-dominio>/payment/talo/webhook`) en el `POST /payments`.
+
+    ¡Listo! Ahora tus clientes pueden pagar con transferencia (Alias/CVU) directo en tu Odoo, con confirmación automática de la orden.
+
+</Steps>
+
+## Siguiente paso
+
+Para validar que el módulo quedó bien instalado en tu Odoo, usá el [Odoo Skill](/ecommerce/odoo/skill): una rutina que podés copiar y correr con tu agente para chequear la integración de punta a punta.
+
+## Preguntas frecuentes
+
+<details>
+<summary>¿Con qué versiones de Odoo es compatible?</summary>
+
+El módulo está versionado y probado para **Odoo 17** (`17.0.1.0.0`). No está validado oficialmente para Odoo 13, 14, 15, 16, 18 ni 19. Si lo instalás en otra major, esperá ajustes (API de `payment.provider`, vistas y eCommerce cambian entre versiones).
+
+</details>
+
+<details>
+<summary>¿Tiene acceso a sandbox?</summary>
+
+Sí. Con el proveedor en **Modo de prueba** y credenciales de [Talo Sandbox](https://sandbox.talo.com.ar), el módulo usa `https://sandbox-api.talo.com.ar/`.
+
+</details>
+
+<details>
+<summary>¿Necesito una cuenta Talo?</summary>
+
+Sí. Las credenciales (`Talo User ID`, `Client ID`, `Client Secret`) se generan desde tu cuenta Talo (sandbox o producción). Podés crear una [cuenta sandbox](https://sandbox.talo.com.ar/signup) para pruebas.
+
+</details>
+
+<details>
+<summary>¿Cómo funciona el webhook? ¿Tengo que configurarlo en el panel de Talo?</summary>
+
+No. No existe un webhook “permanente” en la UI/API de Talo para este flujo.
+
+En cada checkout, cuando Odoo crea el pago, el módulo manda algo así en el `POST /payments`:
+
+```json
+{
+  "webhook_url": "https://<tu-dominio-odoo>/payment/talo/webhook"
+}
+```
+
+Esa URL se arma así:
+
+1. Odoo expone el endpoint fijo `/payment/talo/webhook` (controller del módulo).
+2. Al crear el pago, el módulo llama `self.get_base_url()` (la `web.base.url` de tu instancia) y concatena `/payment/talo/webhook`.
+3. Ese valor viaja en el `POST /payments` a Talo, **por pago**.
+4. Cuando llega la transferencia, Talo hace `POST` a esa URL; Odoo responde `200` y confirma el estado real con un `GET` a la API de Talo.
+
+Solo asegurate de que `web.base.url` sea una URL pública alcanzable por Talo.
+
+</details>
+
+<details>
+<summary>¿Qué pasa si mi Odoo está en localhost?</summary>
+
+Talo no puede pegarle a `localhost`. Usá un túnel (ngrok, Cloudflare Tunnel, etc.), poné esa URL en `web.base.url` y probá de nuevo.
+
+</details>
+
+<details>
+<summary>¿Sandbox y producción usan la misma pantalla de configuración?</summary>
+
+Sí: mismos tres campos de credenciales. Cambia el **valor** de las credenciales y el estado del proveedor (**Modo de prueba** → API sandbox, **Activado** → API producción).
+
+</details>
+
+<details>
+<summary>¿El módulo acepta criptomonedas?</summary>
+
+No. Este módulo es para **transferencias bancarias** (Alias/CVU). Para cripto u otras plataformas, mirá las otras secciones de ecommerce (Tiendanube, WooCommerce, API).
+
+</details>
+
+<details>
+<summary>¿Dónde reporto un problema?</summary>
+
+Escribinos a **devrel@talo.com.ar** o abrí un issue en el repo de referencia del módulo.
+
+</details>

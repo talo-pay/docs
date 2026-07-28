@@ -1,3 +1,5 @@
+"use client"
+
 import styles from "./AddNetworkButton.module.css"
 
 const AddNetworkButton = (props) => {

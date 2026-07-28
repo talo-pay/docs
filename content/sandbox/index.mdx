@@ -1,0 +1,26 @@
+import Link from "next/link"
+import { Callout } from "nextra/components"
+
+# Modo Sandbox
+
+**Talo** ofrece un entorno Sandbox que te permite probar las integraciones en un entorno seguro, utilizando "fondos" ficticios, sin afectar tu cuenta de producción. Este ambiente es ideal para probar tu implementación de la API de **Talo** antes de salir a producción.
+
+## ¿Qué es el Modo Sandbox?
+
+El Modo Sandbox es un entorno de pruebas independiente de tu cuenta de producción en **Talo**. Aquí puedes realizar todas las operaciones que realizarías en el entorno de producción, pero sin utilizar fondos reales.
+
+Puedes acceder al Modo Sandbox creando una cuenta en [Talo Sandbox](https://sandbox.talo.com.ar). Puedes usar las mismas credenciales que en tu cuenta real o crear unas completamente nuevas.
+
+> Ten en cuenta que la cuenta de Sandbox es independiente a la cuenta de **Talo** en producción. Los fondos en modo sandbox no tienen valor real, son simplemente para poder realizar pruebas.
+
+## Comenzando con el Modo Sandbox
+
+Una vez que hayas creado tu cuenta en [Talo Sandbox](https://sandbox.talo.com.ar), estás listo para comenzar a probar la integración. Si ya has realizado la integración siguiendo la [guía de pagos](/ecommerce/API/API_Reference/payment_api), la única diferencia para operar en Modo Sandbox es la URL de la API. Para realizar las pruebas, las solicitudes deben enviarse a `https://sandbox-api.talo.com.ar` en lugar de `https://talo.com.ar`.
+
+> Recordá que los fondos y los pagos que se hagan desde tu cuenta de sandbox y a la URL de sandbox son independientes de los de la cuenta de producción y no tienen valor real.
+
+Ahora, lo único que falta es comenzar a crear órdenes de pago y transferirles dinero para probar todo el ciclo del proceso de pago.
+
+## Como generar fondeos para los pagos generados en el ambiente de pruebas?
+
+En la siguiente pagina [Simulador de Pagos](/sandbox/simulator) podras utilizar tus credenciales generadas para facilmente poder simular un pago.

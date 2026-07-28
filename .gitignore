@@ -1,5 +1,6 @@
 node_modules
 .next
+public/_pagefind
 .DS_Store
 yarn-error.log
 dist

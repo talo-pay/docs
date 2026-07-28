@@ -14,7 +14,7 @@ jsonFiles.forEach((file) => {
 		if (apiData) {
 			contents = render(apiTemplate, apiData)
 			fs.writeFileSync(
-				"../pages/API/" + file.split(".")[0] + ".mdx",
+				"../content/API/" + file.split(".")[0] + ".mdx",
 				contents,
 				"utf8"
 			)

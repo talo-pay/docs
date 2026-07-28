@@ -1,0 +1,38 @@
+import { Callout } from "nextra/components"
+
+# Introducción
+
+¡Bienvenido a la sección de implementación de Talo para Odoo! Con el módulo `payment_talo` podés aceptar transferencias bancarias con Alias y CVU como medio de pago en tu tienda Odoo 17, sin salir del sitio.
+
+<Callout emoji="💡">
+	Pro-tip: Ofrecer transferencia con Alias/CVU directo en el checkout reduce
+	la fricción del pago manual: tu cliente ve los datos al instante y vos
+	confirmás la orden automáticamente en cuanto Talo detecta la transferencia.
+</Callout>
+
+`payment_talo` es un payment provider nativo de Odoo (`code=talo`) que se integra con el módulo `payment` estándar. Cuando un cliente elige Talo en el checkout de tu eCommerce, Odoo lo redirige a una página propia (no a un sitio externo) con el Alias, el CVU y el monto a transferir. Apenas Talo confirma la transferencia vía webhook, la orden se marca como pagada y se confirma sola.
+
+<Callout emoji="📢" type="info">
+	Esta sección te guiará a través del proceso de instalación y configuración
+	del módulo de Talo para Odoo. No necesitás experiencia en criptomonedas ni
+	blockchain: es transferencia bancaria tradicional (Alias/CVU), potenciada
+	por la infraestructura de Talo.
+</Callout>
+
+## Para quién es
+
+- Tenés una tienda **Odoo 17** con los módulos `Website` y `eCommerce` instalados.
+- Vendés en Argentina y querés aceptar **transferencias bancarias** (Alias/CVU) sin conciliar pagos a mano.
+- Ya tenés o podés crear una **cuenta Talo** para generar tus credenciales de API.
+
+## Qué vas a lograr
+
+- Un nuevo medio de pago "Talo" disponible en el checkout de tu Odoo.
+- Una página de instrucciones de transferencia (Alias, CVU, monto, referencia) generada automáticamente por transacción.
+- Confirmación automática de la orden cuando Talo notifica el pago por webhook.
+
+<Callout emoji="🎯">
+	Pro-tip: dejá el proveedor en **Modo de prueba** (API sandbox de Talo)
+	antes de pasarlo a **Activado**. Seguí los [pasos de integración](./integration)
+	y después validá con el [Odoo Skill](./skill).
+</Callout>

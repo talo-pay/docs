@@ -1,0 +1,115 @@
+---
+title: "Webhooks & Notificaciones"
+description: "Recibe eventos de pagos y clientes en tu backend y confirma el estado final desde la API."
+---
+
+import { Callout } from "nextra/components"
+
+# 📡 Webhooks
+
+Cada vez que ocurre un evento relevante, **Talo** envía un `POST` a tu `webhook_url`.
+
+<Callout type="warning">
+	El payload es **minimalista** por seguridad: incluye sólo IDs y un mensaje.
+	Debes hacer un <code>GET</code> adicional para obtener el detalle completo.
+</Callout>
+
+---
+
+## Payloads
+
+### Payments (Transfers API)
+
+```jsonc
+// Evento de actualización de un pago único
+{
+	// Mensaje genérico (no cambia)
+	"message": "Pago Actualizado",
+
+	// Identificador del pago en Talo → úsalo para consultar detalles
+	"paymentId": "VAR-f61876b0-FDF_124",
+
+	// ID de la orden en tu sistema
+	"externalId": "ORDER_123"
+}
+```
+
+### Customers (Customers API)
+
+```jsonc
+// Notificación de que un cliente fijo realizó una transferencia
+{
+	"message": "Pago recibido", // Mensaje
+	"transactionId": "1b5a952a-8a79-4003-b06a-e4043d453456", // ID único de la transacción
+	"customerId": "123456789" // Tu ID interno del cliente
+}
+```
+
+---
+
+## Confirmar el evento
+
+| Evento          | Endpoint                                  | Ejemplo                                             |
+| --------------- | ----------------------------------------- | --------------------------------------------------- |
+| **Payment**     | `GET /payments/{payment_id}`              | `GET /payments/VAR-f61876b0-FDF_124`                |
+| **Transaction** | `GET /customers/{cid}/transactions/{tid}` | `GET /customers/123456789/transactions/1b5a952a...` |
+
+### Ejemplo completo (cURL)
+
+```bash
+# 1️⃣ Responde 200 OK lo más rápido posible (no bloquees con lógica pesada)
+
+curl -H "Authorization: Bearer $TALO_TOKEN" \
+     https://sandbox-api.talo.com.ar/payments/VAR-f61876b0-FDF_124 \
+     --silent | jq '.'   # 2️⃣ Consulta el pago y procesa su contenido
+```
+
+---
+
+## Estados posibles
+
+| Tipo        | Campo                | Valores                                                  |
+| ----------- | -------------------- | -------------------------------------------------------- |
+| Payment     | `payment_status`     | `PENDING`, `SUCCESS`, `OVERPAID`, `UNDERPAID`, `EXPIRED` |
+| Transaction | `transaction_status` | `PROCESSED`                                              |
+
+> Para pagos únicos revisa `payment_status`. Para clientes fijos, confirma con el monto y fecha de la _transaction_.
+
+---
+
+## Manejo recomendado
+
+1. **Responder rápido** `200 OK` — evita timeouts de > 3 s.
+2. Encola el ID recibido y, en un worker separado, haz el `GET` al recurso.
+3. Actualiza tu base (orden pagada, saldo cliente, etc.).
+4. (Opcional) Notifica al usuario (e‑mail, push, etc.).
+
+---
+
+## Seguridad extra
+
+- Verifica que los IDs existan en tu sistema antes de aceptarlos.
+- Pronto: firma HMAC en cabecera `X-Talo-Signature` — prepara tu endpoint para validar con tu `client_secret`.
+
+---
+
+## Pruebas en sandbox
+
+```bash
+# Simula una transferencia (faucet) para forzar el webhook
+
+curl -X POST \
+  "https://sandbox-api.talo.com.ar/cvu/0000630500000060195375/faucet" \
+  -H "Authorization: Bearer $TALO_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{ "amount": 12345 }'    # Monto de prueba en pesos
+```
+
+- **Escucha** el webhook en tu endpoint local (usa `ngrok` para exponerlo si estás desarrollando).
+- **Confirma** con `GET /payments/...` o `GET /customers/.../transactions/...`.
+
+> Limpia tus datos de prueba periódicamente para mantener el sandbox ordenado.
+
+---
+
+¿Dudas? Escríbenos a **devrel@talo.com.ar** o revisa los **[ejemplos en GitHub](https://github.com/talo-pay/examples)**.

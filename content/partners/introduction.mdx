@@ -1,0 +1,21 @@
+# Introducción para integradores
+
+¡Bienvenido a la sección "Para Partners" de la documentación de Talo! Aquí te ayudaremos a realizar la integración de Talo en tu plataforma para que tus clientes puedan aceptar pagos por transferencia de forma automática.
+
+## ¿Cómo funciona?
+
+Como partner, tu plataforma actúa como intermediario: das de alta a tus clientes en Talo, configurás sus cuentas, y generás cobros en su nombre. El flujo completo es el siguiente:
+
+1. **Creá tus credenciales de partner** — Obtené tu `partner_id` y `client_secret` para empezar a integrar.
+
+2. **Autenticación** — Redirigí a tu usuario a Talo para que se registre y autorice el acceso a su cuenta. Intercambiá el código por un token de acceso.
+
+3. **Activación y configuración de la cuenta** — Esperá la activación de la cuenta de tu usuario y configurá su prefijo de alias, expiración de pago, tolerancia y retiros automáticos.
+
+4. **Generación de cobros** — Usá la [Payments API](/transfers/payments-api) o la [Customers API](/transfers/customers-api) con el token de tu usuario para generar cobros en su nombre.
+
+## Empezar en sandbox
+
+Para probar la integración sin necesidad de contactar a nuestro equipo, podés crear tus credenciales de partner directamente desde la sección de [Autenticación](/partners/authentication). Las credenciales de sandbox te permiten recorrer todo el flujo de integración en un entorno de prueba.
+
+> **Para producción**, contactá a nuestro equipo de soporte para dar de alta tu partner con credenciales de producción.

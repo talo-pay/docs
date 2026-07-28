@@ -1,0 +1,19 @@
+# Guía para recibir webhooks
+
+Los webhooks son una manera de recibir notificaciones automatizadas de eventos que ocurren en un sitio web o aplicación.
+En Talo enviamos Webhooks para notificar al Backend del usuario cuando se completo un pago, ya sea que este pago haya quedado en estado `SUCCESS`,`OVERPAID` o `UNDERPAID`.
+
+La dirección a la cual se envía el webhook va especificada en el [`POST /payments`](../API/API_Reference/payment_api) en el campo `webhook_url`.
+
+### Contenido del mensaje del Webhook
+
+Para garantizar que la notificación acerca de los pagos sea auténtica, enviamos un mensaje muy acotado que solo inidica el **id** del pago. De forma que cuando llegue esta notificacion se debe hacer un `GET /payments/:id` y confirmar la veracidad de los datos. El request anterior requiere autenticación para poder obtener toda la información acerca del pago. Para más información acerca de cómo autenticarse ver la [Guía de autenticación](./API_Reference/authentication)
+
+Ejemplo del body de un Webhook:
+
+```
+body:{
+    message: 'Pago Actualizado',
+    paymentId: "01EGME34293EJRLADMVUEJRMD93"
+}
+```

@@ -1,3 +1,5 @@
+"use client"
+
 import React, { useState } from "react"
 import { simulatePayments } from "../api_data/simulatePayments"
 

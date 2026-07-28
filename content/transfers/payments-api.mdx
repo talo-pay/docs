@@ -1,0 +1,702 @@
+---
+title: "Payments API"
+description: "Crea pagos únicos con CVU/alias exclusivo por orden y recibe el pago conciliado automáticamente."
+---
+
+import { Callout, Tabs } from "nextra/components"
+
+# Payments API
+
+Crea un pago único por transferencia bancaria y obtén un **CVU/alias** exclusivo para esa orden.
+
+---
+
+## Crear un pago
+
+### Prod
+
+```http
+POST https://api.talo.com.ar/payments/
+```
+
+### Sandbox
+
+```http
+POST https://sandbox-api.talo.com.ar/payments/
+```
+
+<Callout type="info">
+	Este endpoint es público y no requiere `Authorization` header. El campo `user_id` en el body identifica al comercio.
+</Callout>
+
+### Campos requeridos
+
+| Campo            | Tipo       | Descripción                                                     |
+| ---------------- | ---------- | --------------------------------------------------------------- |
+| `user_id`        | `string`   | ID de tu cuenta Talo (sandbox o producción)                     |
+| `price.amount`   | `number`   | Monto del pago (positivo)                                       |
+| `price.currency` | `string`   | Moneda. Valores soportados: `"ARS"`, `"BNB"`, `"USDT"`, `"BRL"` |
+| `payment_options`| `string[]` | Métodos de pago: `"transfer"`, `"crypto"`, `"pix"`               |
+
+### Campos opcionales
+
+| Campo             | Tipo       | Descripción                                                                                      |
+| ----------------- | ---------- | ------------------------------------------------------------------------------------------------ |
+| `external_id`     | `string`   | ID único de tu orden en tu sistema                                                                |
+| `webhook_url`     | `string`   | URL donde recibirás notificaciones de cambios de estado                                           |
+| `redirect_url`    | `string`   | URL a donde redirigir al cliente al terminar el pago                                              |
+| `motive`          | `string`   | Motivo del pago                                                                                   |
+| `client_data`     | `object`   | Datos del cliente (ver detalle abajo)                                                             |
+| `team_id`         | `string`   | ID del equipo (para usuarios con múltiples equipos)                                               |
+| `tags`            | `string[]` | Etiquetas para categorizar el pago                                                                |
+| `partner_id`      | `string`   | ID del partner que origina el pago (ver nota abajo)                                               |
+
+<Callout type="warning">
+	**Partners**: si estás creando pagos en nombre de un comercio como partner, incluí el campo `partner_id` con tu identificador de partner. Esto permite distinguir qué pagos de una cuenta fueron originados por el comercio y cuáles fueron atribuidos al partner.
+</Callout>
+
+### Campos de `client_data`
+
+Todos los campos dentro de `client_data` son opcionales:
+
+| Campo        | Tipo     | Descripción                  |
+| ------------ | -------- | ---------------------------- |
+| `first_name` | `string` | Nombre del cliente           |
+| `last_name`  | `string` | Apellido del cliente         |
+| `phone`      | `string` | Teléfono del cliente         |
+| `email`      | `string` | E-mail del cliente           |
+| `dni`        | `string` | DNI del cliente              |
+| `cuit`       | `string` | CUIT/CUIL del cliente        |
+
+---
+
+## Ejemplo de solicitud
+
+<Tabs items={['cURL','Node.js']}>
+  <Tabs.Tab label="cURL">
+
+```bash
+curl -X POST https://sandbox-api.talo.com.ar/payments/ \
+  -H "Content-Type: application/json" \
+  -d '{
+    "user_id": "f61876b0-10a5-4e39-8e2c-17343b3fa1b6",
+    "price": { "amount": 30000, "currency": "ARS" },
+    "payment_options": ["transfer"],
+    "external_id": "ORDER_123",
+    "webhook_url": "https://tu-sitio.com/webhooks/talo",
+    "client_data": {
+      "first_name": "Juan",
+      "last_name": "Pérez",
+      "email": "juan@example.com",
+      "dni": "12345678"
+    }
+  }'
+```
+
+  </Tabs.Tab>
+  <Tabs.Tab label="Node.js">
+
+```js
+await fetch("https://sandbox-api.talo.com.ar/payments/", {
+	method: "POST",
+	headers: {
+		"Content-Type": "application/json",
+	},
+	body: JSON.stringify({
+		user_id: process.env.USER_ID,
+		price: { amount: 30000, currency: "ARS" },
+		payment_options: ["transfer"],
+		external_id: "ORDER_123",
+		webhook_url: "https://tu-sitio.com/webhooks/talo",
+		client_data: {
+			first_name: "Juan",
+			last_name: "Pérez",
+			email: "juan@example.com",
+			dni: "12345678",
+		},
+	}),
+})
+```
+
+  </Tabs.Tab>
+</Tabs>
+
+---
+
+## Respuesta
+
+```json5
+{
+	data: {
+		id: "VAR-f61876b0-FDF_124", // ID interno de Talo
+		payment_status: "PENDING",
+		quotes: [
+			{
+				cvu: "0000630500000060195375",
+				alias: "talo.ago.1468",
+			},
+		],
+		payment_url: "https://talo.com.ar/payments/VAR-f618...",
+		expiration_timestamp: "2024-09-02T14:00:15.411Z",
+	},
+}
+```
+
+> **Muestra al cliente** el `cvu` o `alias`, o simplemente redirígelo a `payment_url`.
+
+---
+
+## Estados del pago
+
+| Estado      | Descripción                              |
+| ----------- | ---------------------------------------- |
+| `PENDING`   | Esperando transferencia                  |
+| `SUCCESS`   | Se acreditó el monto exacto             |
+| `OVERPAID`  | Se recibió más de lo solicitado          |
+| `UNDERPAID` | Se recibió menos de lo solicitado        |
+| `EXPIRED`   | El CVU venció (~5 días)                  |
+
+<Callout type="tip">
+	Para `OVERPAID` y `UNDERPAID`, decide si aceptas la orden o emites reembolso
+	manual.
+</Callout>
+
+---
+
+## Simular pago en sandbox
+
+```http
+POST https://sandbox-api.talo.com.ar/cvu/{cvu}/faucet
+```
+
+### Parámetros del path
+
+| Campo | Tipo     | Descripción               |
+| ----- | -------- | ------------------------- |
+| `cvu` | `string` | CVU donde recibir el pago |
+
+### Parámetros del body
+
+| Campo    | Tipo     | Requerido | Descripción              |
+| -------- | -------- | --------- | ------------------------ |
+| `amount` | `number` | Sí        | Monto a simular en pesos |
+| `cuit`   | `string` | No        | CUIT del emisor simulado |
+
+### Ejemplo de simulación
+
+```bash
+curl -X POST \
+  "https://sandbox-api.talo.com.ar/cvu/0000630500000060195375/faucet" \
+  -H "Authorization: Bearer $TALO_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{ "amount": 30000 }'
+```
+
+### Payload del webhook:
+
+```json
+{
+	"message": "Pago Actualizado",
+	"paymentId": "VAR-f61876b0-FDF_124",
+	"externalId": "ORDER_123"
+}
+```
+
+---
+
+## Consultar un pago
+
+```http
+GET https://sandbox-api.talo.com.ar/payments/{paymentId}
+```
+
+### Parámetros del path
+
+| Campo       | Tipo     | Descripción                 |
+| ----------- | -------- | --------------------------- |
+| `paymentId` | `string` | ID interno de Talo del pago |
+
+### Campos de la respuesta
+
+| Campo                  | Tipo       | Descripción                                                                             |
+| ---------------------- | ---------- | --------------------------------------------------------------------------------------- |
+| `payment_status`       | `string`   | Estado del pago                                                                         |
+| `payment_url`          | `string`   | URL para completar el pago                                                              |
+| `expiration_timestamp` | `string`   | Fecha de vencimiento (ISO 8601)                                                         |
+| `quotes[0].address`    | `string`   | CVU para transferir                                                                     |
+| `quotes[0].alias`      | `string`   | Alias de la cuenta                                                                      |
+| `price.amount`         | `number`   | Monto del pago                                                                          |
+| `price.currency`       | `string`   | Moneda                                                                                  |
+| `payment_options`      | `string[]` | Métodos de pago                                                                         |
+| `external_id`          | `string`   | ID de la orden                                                                          |
+| `webhook_url`          | `string`   | URL de webhook                                                                          |
+| `redirect_url`         | `string`   | URL de redirección                                                                      |
+| `motive`               | `string`   | Motivo del pago                                                                         |
+| `transaction_fields`   | `object`   | Campos de la transacción. Presente una vez que se haya realizado el pago.               |
+| `transactions`         | `object[]` | Transacciones. Presente una vez que se haya recibido alguna transferencia para el pago. |
+
+### Ejemplo de consulta
+
+```bash
+curl -H "Authorization: Bearer $TALO_TOKEN" \
+  https://sandbox-api.talo.com.ar/payments/VAR-f61876b0-FDF_124
+```
+
+### Ejemplo de respuesta
+
+```json
+{
+	"message": "ok",
+	"error": false,
+	"code": 200,
+	"data": {
+		"price": {
+			"amount": 30000,
+			"currency": "ARS"
+		},
+		"creation_timestamp": "2024-08-28T14:00:15.411Z",
+		"last_modified_timestamp": "2024-08-28T14:00:15.411Z",
+		"user_id": "f61876b0-10a5-4e39-8e2c-17343b3fa1b6",
+		"external_id": "FDF_124",
+		"redirect_url": "https://example.com/payment/123",
+		"webhook_url": "https://example.com/webhooks/payments",
+		"quotes": [
+			{
+				"currency": "ARS",
+				"network": "POLLUX",
+				"amount": "30000",
+				"amountReadable": "30000",
+				"address": "0000630500000060195375",
+				"alias": "talo.ago.1468"
+			}
+		],
+		"is_deleted": false,
+		"payment_status": "SUCCESS",
+		"id": "VAR-f61876b0-10a5-4e39-8e2c-17343b3fa1b6-FDF_124",
+		"user_info": {
+			"email": "example@example.com",
+			"fiat_payments_enabled": false,
+			"payment_notifications": false,
+			"user_id": "f61876b0-10a5-4e39-8e2c-17343b3fa1b6",
+			"payment_url": "https://d3e9ln1d0tu6ol.cloudfront.net/payments/VAR-f61876b0-10a5-4e39-8e2c-17343b3fa1b6-FDF_124",
+			"payment_options": ["transfer"],
+			"provider": "email",
+			"expiration_timestamp": "2024-09-02T14:00:15.411Z",
+			"transactions": [
+				{
+					"address": "0000630500000060195375",
+					"amount": "30000",
+					"commission": 0.605,
+					"commission_amount": "1053.51",
+					"commission_taxes": [
+						{
+							"tax_amount": 6.32,
+							"tax_rate": 0.6,
+							"tax_type": "DEBIT"
+						}
+					],
+					"commission_tax_amount": "6.32",
+					"creation_timestamp": "2025-03-12T03:35:32.405Z",
+					"credited_amount": "172029.37",
+					"currency": "ARS",
+					"network": "POLLUX",
+					"sender_address": "00000031123456789",
+					"taxes": [
+						{
+							"tax_amount": 1044.80,
+							"tax_rate": 0.6,
+							"tax_type": "CREDIT"
+						}
+					],
+					"tax_amount": "1044.80",
+					"transaction_data": {
+						"PROCESSED": {
+							"amount": 30000,
+							"currency": "ARS",
+							"recipient": "0000630500000060195375",
+							"recipientCuit": "30123456789",
+							"recipientTitular": "EXAMPLE SA",
+							"sender": "00000031123456789",
+							"senderCuit": "20997654321",
+							"senderTitular": "Carolina Perez",
+							"trxId": "1b5a952a-8a79-4003-b06a-e4043d453456"
+						}
+					}
+				}
+			]
+		},
+		"transaction_fields": {
+			"amount": "30000",
+			"amountReadable": "30000",
+			"commission_amount": "1053.51",
+			"credited_amount": "172029.37",
+			"currency": "ARS",
+			"network": "POLLUX",
+			"total_paid": {
+				"amount": "30000",
+				"currency": "ARS"
+			}
+		}
+	}
+}
+```
+
+---
+
+## Listar pagos
+
+```http
+GET https://sandbox-api.talo.com.ar/payments/
+```
+
+<Callout type="info">
+	Requiere `Authorization: Bearer` header.
+</Callout>
+
+### Query parameters
+
+| Campo                        | Tipo     | Requerido | Descripción                                                                                   |
+| ---------------------------- | -------- | --------- | ----------------------------------------------------------------------------------------------|
+| `user_id`                    | `string` | Sí        | ID del usuario cuyos pagos se quieren consultar                                               |
+| `team_id`                    | `string` | No        | Filtrar por equipo                                                                             |
+| `start_date`                 | `string` | No        | Fecha de inicio (ISO 8601)                                                                    |
+| `end_date`                   | `string` | No        | Fecha de fin (ISO 8601)                                                                        |
+
+### Ejemplo
+
+```bash
+curl -H "Authorization: Bearer $TALO_TOKEN" \
+  "https://sandbox-api.talo.com.ar/payments/?user_id=f61876b0-10a5-4e39-8e2c-17343b3fa1b6&start_date=2026-07-01T00:00:00.000Z&end_date=2026-07-31T23:59:59.000Z"
+```
+
+### Ejemplo de respuesta (real, sandbox)
+
+```json5
+{
+	message: "ok",
+	error: false,
+	code: 200,
+	data: {
+		payments: [
+			{
+				id: "VAR-f61876b0-10a5-4e39-8e2c-17343b3fa1b6-DOCFIX-1784132231",
+				external_id: "DOCFIX-1784132231",
+				payment_status: "SUCCESS",
+				price: { amount: 1200, currency: "ARS" },
+				quotes: [
+					{
+						currency: "ARS",
+						network: "POLLUX",
+						amount: "1200",
+						amountReadable: "1200",
+						address: "0000716149000693369021",
+						alias: "jul.807995.talo",
+					},
+				],
+				payment_options: ["transfer"],
+				payment_url: "https://sandbox.talo.com.ar/payments/VAR-f61876b0-10a5-4e39-8e2c-17343b3fa1b6-DOCFIX-1784132231",
+				creation_timestamp: "2026-07-15T16:17:15.863Z",
+				last_modified_timestamp: "2026-07-15T16:19:02.380Z",
+				is_deleted: false,
+			},
+		],
+		// No hay campo "cursor" ni "lastEvaluatedKey" en este endpoint hoy.
+	},
+}
+```
+
+---
+
+## Consultar pago público
+
+```http
+GET https://sandbox-api.talo.com.ar/payments/{paymentId}/public
+```
+
+<Callout type="info">
+	Este endpoint es público y no requiere autenticación. Retorna un subconjunto de la información del pago.
+</Callout>
+
+### Parámetros del path
+
+| Campo       | Tipo     | Descripción                 |
+| ----------- | -------- | --------------------------- |
+| `paymentId` | `string` | ID interno de Talo del pago |
+
+---
+
+## Actualizar expiración del pago
+
+```http
+PUT https://sandbox-api.talo.com.ar/payments/{payment_id}/expiration
+```
+
+Permite extender la fecha de expiración de un pago en estado `PENDING`.
+
+### Parámetros del path
+
+| Campo        | Tipo     | Descripción                 |
+| ------------ | -------- | --------------------------- |
+| `payment_id` | `string` | ID interno de Talo del pago |
+
+### Campos requeridos
+
+| Campo                  | Tipo     | Descripción                              |
+| ---------------------- | -------- | ---------------------------------------- |
+| `expiration_timestamp` | `string` | Nueva fecha de expiración (ISO 8601)     |
+
+### Ejemplo
+
+```bash
+curl -X PUT https://sandbox-api.talo.com.ar/payments/VAR-f61876b0-FDF_124/expiration \
+  -H "Authorization: Bearer $TALO_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "expiration_timestamp": "2024-09-10T14:00:00.000Z"
+  }'
+```
+
+<Callout type="warning">
+	**Respuesta real (verificado en sandbox)**: este endpoint **no** usa el envelope `{message, error, code, data}` del resto de la API — devuelve directamente el objeto payment actualizado, con HTTP 200.
+</Callout>
+
+### Ejemplo de respuesta (real, sandbox)
+
+```json5
+{
+	id: "VAR-f61876b0-10a5-4e39-8e2c-17343b3fa1b6-DOCFIX-1784132231",
+	external_id: "DOCFIX-1784132231",
+	payment_status: "PENDING",
+	price: { amount: 1000, currency: "ARS" },
+	quotes: [
+		{
+			alias: "jul.807995.talo",
+			currency: "ARS",
+			amount: "1000",
+			amountReadable: "1000",
+			address: "0000716149000693369021",
+			network: "POLLUX",
+		},
+	],
+	payment_options: ["transfer"],
+	payment_url: "https://sandbox.talo.com.ar/payments/VAR-f61876b0-10a5-4e39-8e2c-17343b3fa1b6-DOCFIX-1784132231",
+	creation_timestamp: "2026-07-15T16:17:15.863Z",
+	last_modified_timestamp: "2026-07-15T16:17:36.719Z",
+	expiration_timestamp: "2026-07-25T14:00:00.000Z", // <- actualizado
+	is_deleted: false,
+}
+```
+
+---
+
+## Actualizar precio del pago
+
+```http
+PUT https://sandbox-api.talo.com.ar/payments/{paymentId}/price
+```
+
+Permite actualizar el precio de un pago. Si el pago está en estado `SUCCESS`, `OVERPAID` o `UNDERPAID`, se recalculará el estado basado en el nuevo precio y se enviará una notificación al webhook configurado.
+
+### Parámetros del path
+
+| Campo       | Tipo     | Descripción                 |
+| ----------- | -------- | --------------------------- |
+| `paymentId` | `string` | ID interno de Talo del pago |
+
+### Campos requeridos
+
+| Campo      | Tipo     | Descripción                                           |
+| ---------- | -------- | ----------------------------------------------------- |
+| `currency` | `string` | Código de moneda (`"ARS"`)                            |
+| `amount`   | `number` | Nuevo monto del pago                                  |
+
+<Callout type="warning">
+	No se puede actualizar el precio de un pago en estado `EXPIRED`.
+</Callout>
+
+### Ejemplo
+
+<Tabs items={['cURL','Node.js']}>
+  <Tabs.Tab label="cURL">
+
+```bash
+curl -X PUT https://sandbox-api.talo.com.ar/payments/VAR-f61876b0-FDF_124/price \
+  -H "Authorization: Bearer $TALO_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "currency": "ARS",
+    "amount": 35000
+  }'
+```
+
+  </Tabs.Tab>
+  <Tabs.Tab label="Node.js">
+
+```js
+await fetch("https://sandbox-api.talo.com.ar/payments/VAR-f61876b0-FDF_124/price", {
+	method: "PUT",
+	headers: {
+		Authorization: `Bearer ${process.env.TALO_TOKEN}`,
+		"Content-Type": "application/json",
+	},
+	body: JSON.stringify({
+		currency: "ARS",
+		amount: 35000,
+	}),
+})
+```
+
+  </Tabs.Tab>
+</Tabs>
+
+<Callout type="warning">
+	**Respuesta real (verificado en sandbox)**: al igual que `PUT .../expiration`, este endpoint **no** usa el envelope `{message, error, code, data}` — devuelve directamente el objeto payment actualizado, con HTTP 200.
+</Callout>
+
+### Ejemplo de respuesta (real, sandbox)
+
+```json5
+{
+	id: "VAR-f61876b0-10a5-4e39-8e2c-17343b3fa1b6-DOCFIX-1784132231",
+	external_id: "DOCFIX-1784132231",
+	payment_status: "PENDING",
+	price: { currency: "ARS", amount: 1200 }, // <- actualizado
+	quotes: [
+		{
+			alias: "jul.807995.talo",
+			currency: "ARS",
+			amount: "1200", // <- el monto del quote también se actualiza
+			amountReadable: "1200",
+			address: "0000716149000693369021",
+			network: "POLLUX",
+		},
+	],
+	payment_options: ["transfer"],
+	payment_url: "https://sandbox.talo.com.ar/payments/VAR-f61876b0-10a5-4e39-8e2c-17343b3fa1b6-DOCFIX-1784132231",
+	creation_timestamp: "2026-07-15T16:17:15.863Z",
+	last_modified_timestamp: "2026-07-15T16:17:40.353Z",
+	expiration_timestamp: "2026-07-25T14:00:00.000Z",
+	is_deleted: false,
+}
+```
+
+---
+
+## Actualizar metadatos del pago
+
+Permite modificar campos específicos del pago con seguimiento de historial.
+
+### Prod
+
+```http
+PUT https://api.talo.com.ar/payments/{paymentId}/metadata
+```
+
+### Sandbox
+
+```http
+PUT https://sandbox-api.talo.com.ar/payments/{paymentId}/metadata
+```
+
+### Parámetros del path
+
+| Campo       | Tipo     | Descripción                 |
+| ----------- | -------- | --------------------------- |
+| `paymentId` | `string` | ID interno de Talo del pago |
+
+### Campos requeridos
+
+| Campo    | Tipo     | Descripción     |
+| -------- | -------- | --------------- |
+| `motive` | `string` | Motivo del pago |
+
+### Ejemplo de solicitud
+
+<Tabs items={['cURL','Node.js']}>
+  <Tabs.Tab label="cURL">
+
+```bash
+curl -X PUT https://sandbox-api.talo.com.ar/payments/VAR-f61876b0-FDF_124/metadata \
+  -H "Authorization: Bearer $TALO_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "motive": "Compra de productos - actualizado"
+  }'
+```
+
+  </Tabs.Tab>
+  <Tabs.Tab label="Node.js">
+
+```js
+await fetch("https://sandbox-api.talo.com.ar/payments/VAR-f61876b0-FDF_124/metadata", {
+	method: "PUT",
+	headers: {
+		Authorization: `Bearer ${process.env.TALO_TOKEN}`,
+		"Content-Type": "application/json",
+	},
+	body: JSON.stringify({
+		motive: "Compra de productos - actualizado",
+	}),
+})
+```
+
+  </Tabs.Tab>
+</Tabs>
+
+### Respuesta real (verificado en sandbox)
+
+<Callout type="warning">
+	**Comportamiento real verificado (sandbox, 2026-07-15)**: la respuesta es **HTTP 200 con body `null`**, no el envelope `{message, error, code, data}` de abajo. El cambio **sí se aplica** (confirmado con un `GET /payments/{paymentId}` inmediatamente después — el `motive` y el historial en `metadata.motive[]` quedan actualizados), pero la respuesta del PUT no lo confirma. **Recomendación**: no confíes en el body de este PUT — hacé un `GET /payments/{paymentId}` después para confirmar que el cambio se aplicó.
+</Callout>
+
+```json
+null
+```
+
+HTTP status: `200`
+
+El shape de abajo (`{message, error, code, data}`) es el que la API está *diseñada* para devolver, y podría volver a funcionar si se corrige el bug de backend — pero hoy no es lo que se recibe:
+
+```json
+{
+	"message": "Metadata updated successfully",
+	"error": false,
+	"code": 200,
+	"data": {
+		"motive": "Compra de productos - actualizado",
+		"metadata": {
+			"motive": [
+				{
+					"value": "Compra de productos - actualizado",
+					"previous": "Compra de productos",
+					"modified_by": "user@example.com",
+					"modification_timestamp": "2024-09-02T15:30:45.123Z"
+				}
+			]
+		}
+	}
+}
+```
+
+### Funcionalidad
+
+- **Historial de cambios**: Cada modificación se registra con el valor anterior, nuevo valor, usuario que realizó el cambio y timestamp
+- **Validación de permisos**: Solo el propietario del pago puede modificar los metadatos
+- **Campos disponibles**: Actualmente solo se permite modificar el campo `motive`
+- **Confirmá con un GET**: dado que el PUT no devuelve confirmación fiable, hacé `GET /payments/{paymentId}` después de cada actualización de metadata para verificar que se aplicó
+
+<Callout type="warning">
+	Los cambios de metadatos quedan registrados permanentemente en el historial del pago.
+</Callout>
+
+---
+
+## UX recomendado
+
+- **Temporizador**: muestra cuenta regresiva hasta `expiration_timestamp`.
+- **Copy‑to‑clipboard**: botón para copiar CVU y alias.
+- **Botón "Abrir Home Banking"** (link a apps comunes) para acelerar la transferencia.
+
+---
+
+> Lista para pasar a cuentas permanentes? Lee **[Customers API →](/transfers/customers-api)**

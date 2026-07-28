@@ -1,0 +1,112 @@
+import { Callout } from "nextra/components"
+import { SandboxPartnerForm } from "../../components/SandboxPartnerForm"
+
+# Autenticación
+
+Esta sección te ayudará a crear tus credenciales de partner, dar de alta a tus clientes en Talo y a intercambiar las credenciales de acceso a la API.
+
+## 1. Creá tus credenciales de partner (sandbox)
+
+<Callout type="info">
+	Las credenciales creadas desde este formulario son **exclusivamente para el entorno sandbox**. Para credenciales de producción, contactá a nuestro equipo de soporte.
+</Callout>
+
+Completá el formulario para obtener tu `partner_id` y `client_secret`:
+
+<SandboxPartnerForm />
+
+### Campos del formulario
+
+| Campo                | Descripción                                                              |
+| -------------------- | ------------------------------------------------------------------------ |
+| **Nombre**           | Nombre de tu plataforma                                                  |
+| **Slug**             | Identificador único (minúsculas, sin espacios)                          |
+| **URL de redirección** | URL a donde Talo redirigirá al usuario luego de la autorización       |
+| **Comisión (%)**     | Comisión que aplicarás a tus usuarios (0-5%)                            |
+| **Webhook URL**      | _(Opcional)_ URL para recibir notificaciones de activación de cuentas   |
+
+---
+
+## 2. Alta de cliente en Talo
+
+Una vez que tenés tus credenciales, deberás redirigir al usuario a la siguiente URL para que se registre y autorice el acceso:
+
+```
+https://app.talo.com.ar/authorize/{partner_id}?referred_user_id={external_user_id}
+```
+
+El usuario completará el registro en Talo y una vez finalizado, se le mostrará una pantalla de consentimiento. Aquí tendrá que confirmar que desea dar al partner acceso a su cuenta.
+
+Una vez que el usuario confirma, Talo lo redirigirá a la url de redirección que proporcionaste, con un `code` en el query string.
+
+Puede agregarse un `referred_user_id` para que luego en la redirección enviemos esta metadata también como query string. Esto es útil para poder identificar al usuario en tu plataforma.
+
+```
+https://{redirect_url}?code={code}&referred_user_id={external_user_id}
+```
+
+---
+
+## 3. Intercambio de credenciales
+
+En la url de redirección recibirás `code` como query string, el cual deberás utilizar para obtener el access_token de tu usuario. Este código tiene una validez de **5 minutos**.
+
+```
+POST https://sandbox-api.talo.com.ar/auth/tokens
+```
+
+### Request
+
+```json
+{
+    "code": "{code}",
+    "client_id": "{partner_id}",
+    "client_secret": "{client_secret}"
+}
+```
+
+El campo `client_id` es el `partner_id` que obtuviste al crear tus credenciales.
+
+### Response
+
+```json
+{
+	"data": {
+		"token": "PAR-a4ekdf-a6f39kl-09k8ytr4",
+		"user_id": "507d3c2ret-36g6-6b22-99ab-427d0sdfsdfff21",
+		"referred_user_id": "userPrueba1234"
+	},
+	"status": "ok",
+	"error": false
+}
+```
+
+| Campo              | Descripción                                               |
+| ------------------ | --------------------------------------------------------- |
+| `token`            | Token de acceso (`PAR-` prefix) para operar en nombre del usuario |
+| `user_id`          | ID del usuario en Talo                                    |
+| `referred_user_id` | ID del usuario en tu plataforma (si fue enviado)          |
+
+### Error response
+
+```json
+{
+	"error": true,
+	"message": "Invalid credentials",
+	"code": 400
+}
+```
+
+Este error se produce cuando las credenciales no son válidas o expiró el código. Para obtener un nuevo código, deberás redirigir al usuario a la URL de autorización nuevamente.
+
+---
+
+## Producción
+
+Para obtener credenciales de producción, contactá a nuestro equipo de soporte proporcionando:
+
+- Nombre del partner
+- URL de redirección
+- Comisión que aplicarás a tus usuarios
+- _(Opcional)_ URL de webhook para notificaciones
+- _(Opcional)_ URL de logo para la pantalla de consentimiento
